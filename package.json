@@ -1,0 +1,67 @@
+{
+  "name": "mind",
+  "type": "module",
+  "version": "0.0.0",
+  "author": "mindranger",
+  "description": "dynamic module router (seed) with file, mind and root modules, generic json-as-document parser (document) and browser client (peer).",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bpstrngr/mind"
+  },
+  "main": "./Blik_2020_seed.js",
+  "module": "./Blik_2020_seed.js",
+  "scripts": {
+    "pirate": "node --experimental-json-modules --experimental-vm-modules --inspect -e import\\(\\'./Blik_2020_seed.js\\'\\).then\\(\\({open}\\)=\\>open\\(\\'./Blik_2020_root.js\\',\\'pirate\\'\\)\\);",
+    "secure": "node --experimental-json-modules --experimental-vm-modules --inspect -e import\\(\\'./Blik_2020_seed.js\\'\\).then\\(\\({open}\\)=\\>open\\(\\'./Blik_2020_root.js\\',\\'secure\\'\\)\\);",
+    "rollup": "rollup --format=module -p @rollup/plugin-multi-entry,@rollup/plugin-json,@rollup/plugin-node-resolve --file "
+  },
+  "dependencies": {
+    "@babel/parser": "latest",
+    "@codemirror/next": "^0.12.0",
+    "d3": "latest",
+    "jsdom": "latest",
+    "jss": "latest",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "socket.io": "^2.3.0"
+  },
+  "codes": "./Blik_2020_keys.json",
+  "files": [
+    "Blik_*.js",
+    "Blik_*.json"
+  ],
+  "modules": {
+    "haverbeke_2020_codemirror.js": {
+      "@codemirror/next": [
+        "view/dist/index.js",
+        "fold/dist/index.js",
+        "state/dist/index.js",
+        "gutter/dist/index.js",
+        "commands/dist/index.js",
+        "history/dist/index.js",
+        "autocomplete/dist/index.js",
+        "matchbrackets/dist/index.js",
+        "closebrackets/dist/index.js"
+      ]
+    },
+    "Bostock_2020_d3v6.js": {
+      "d3": [
+        "node_modules/d3-selection/src/index.js",
+        "node_modules/d3-hierarchy/src/index.js",
+        "node_modules/d3-scale/src/index.js",
+        "node_modules/d3-force/src/index.js",
+        "node_modules/d3-zoom/src/index.js",
+        "node_modules/d3-drag/src/index.js"
+      ]
+    },
+    "domenic_2020_jsdom.js": {
+      "jsdom": [
+        "lib/api.js"
+      ]
+    },
+    "digitalbazaar_2020_nodeforge.js": {
+      "node-forge": [
+        "lib/pki.js"
+      ]
+    }
+  }
+}

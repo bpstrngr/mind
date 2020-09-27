@@ -1,0 +1,136 @@
+#!/bin/bash
+# bundle external modules. 
+# programmatical variant disabled within seed.open.
+
+for module in $(jq '.modules|keys[]' package.json);
+do 
+if [ -f $(echo $module|sed 's/\"//g') ];then echo $module" present";else
+ echo $module
+ package=$(jq ".modules|.[$module]" package.json);
+ echo $package
+ for key in $(echo $package|jq keys[]);do npm i -g $(echo $key|sed 's/\"//g');done;
+ rollup --format=module -p @rollup/plugin-multi-entry,@rollup/plugin-json,@rollup/plugin-commonjs,@rollup/plugin-node-resolve --file $module $(echo $package|jq --arg node "$(npm config get prefix)" 'to_entries[]|$node+"/lib/node_modules/"+.key+"/"+.value[]'|sed 's/\"//g');
+if [ $(jq values[] .cjsescache|wc -l) -gt 0 ];then 
+ echo "WORRY NOT! export types noted in .cjsescache. repeating rollup for "$module;
+ rollup --format=module -p @rollup/plugin-multi-entry,@rollup/plugin-json,@rollup/plugin-commonjs,@rollup/plugin-node-resolve --file $module $(echo $package|jq --arg node "$(npm config get prefix)" 'to_entries[]|$node+"/lib/node_modules/"+.key+"/"+.value[]'|sed 's/\"//g');
+fi;
+ rm .cjsescache
+fi;
+done;
+
+node --experimental-json-modules --inspect -e 'import("./Blik_2020_seed.js").then(({open})=>open("./Blik_2020_root.js"))';
+
+exit 0
+
+itinerary:#strong
+dragon#scan{height:1em;fill:green} crucial snail#scan{height:1em;fill:#795548} proposal apple#scan{height:1em;fill:#b71c1c} ready worm#scan{height:1em} bug
+
+syntax_guide#strong : 
+#1 one statement per line. 
+#1 indent stacks and arrays containing expressions with one space.
+#2 indent objects with two spaces. 
+#3 break lines before lambda, ternary and array operators. 
+1. imports
+2. exports
+3. default export
+4. internal functions
+5. internal variables
+6. expressions
+
+corridor#scan{height:1em;fill:white} 
+root.js#strong
+form#strong : html radio form to 
+select path offering module options. 
+default to input path, switching that of "/" to "module". 
+react#strong : reproduction of "form" in react's dialect 
+mind#strong : hmac-key-authenticated identity.   
+mind.get#strong :  
+authority#strong : for randomstring-session token.   
+order#strong : scheduled external request.   
+stuff#strong for orderable shop items.   
+store.get#strong :  
+mongo.get#strong :  
+matrix.get#strong :  
+modules#strong : module import hierarchy from babel-parser's abstract syntax tree 
+peripheries#strong : module
+
+arch#scan{height:1em;fill:white} 
+seed.js#strong
+open#strong : 
+match "http" and "socket.js" request paths to module or file asynchronously 
+on specified port. switch trailing "/" to "form". .
+
+talaria#scan{height:1em;fill:white} 
+peer.js#strong
+if present,
+fetch form source on form path, 
+examine it to reform{color:#b71c1c} form 
+and insert form transform. 
+then fill{color:#b71c1c} and retrieve{color:#b71c1c} it with querystring parameters. 
+transform#strong : reduce source{color:#00796b} items with tag{color:#00796b} function 
+or to their tag{color:#00796b} key value or raw tag{color:#00796b} key
+and recursed child{color:#00796b} key value or raw child key pairs 
+with arbitrary or functional additional attributes. 
+formify#strong : transform{color:b71c1c} source{color:#00796b}'s array, string and boolean values to 
+respective list-supported, plain text inputs or checkboxes with key identification 
+and optionally specified alternative labels{color:#00796b} or list item transforms by key. 
+transform#strong : swap source{color:#00796b} keys and values to specified tag{color:#00796b} structure
+reform#strong : 
+retrieve#strong : let [source,attributes]=examine({...input,source:await resolve(input.source)});
+if(!replace)input=fillform(form,{...input,...attributes}); //correct invalid input
+source=await self[input.structure](source,input);
+insert(source,target,true); //target swapped for loading icon in advance
+self.collaborate#strong : 
+self.edit#strong : new codemirror();  
+self.media#strong : string||new pdf()||document.createRange().contextualFragment();  
+self.network#strong : restructure source{color:#00796b} with d3.hierarchy()
+assign coordinates with d3.tree() if no force specified
+extract source.links() or infer source.leaves() if matrix specified
+prepare zoomable "svg" "g.link" and "g.node" clusters 
+dragon#scan{height:1em;fill:green} formalise form/deform insertions  
+dragon#scan{height:1em;fill:green} construct network newnodes  
+dragon#scan{height:1em;fill:green} fetch sources/chatrooms on form handle.  
+dragon#scan{height:1em;fill:green} persist network nodes on source name.  
+dragon#scan{height:1em;fill:green} extract links from saved nodelist (restore hierarchy).  
+dragon#scan{height:1em;fill:green} direct form to chat room on source name (require session).  
+apple#scan{height:1em;fill:red} parameterise hierarchical/charged nodes.  
+worm#scan{height:1em} trailing update selections leave unindexed nodes for edits (eg. collapse)  
+scan#strong : recursively create elements or attributes for keys,   
+optional namespace switched on svg.  
+deform#strong : "title@source#tag/function(arguments){style}" notation
+snail#scan{height:1em;fill:#795548} standard DOM methods on json (select,append,etc.)  
+snail#scan{height:1em;fill:#795548} train json structure analysis (determine)  
+snail#scan{height:1em;fill:#795548} enable chord layout.  
+snail#scan{height:1em;fill:#795548} parameterize hall module  
+
+blessochampion_2019_awesomesvgs.json@https://gist.github.com/blessochampion/f7754f4be5c91b075aded62ee9e07082
+awesome svg outerhtml map.
+
+vectors.json#strong   
+json-encoded custom svg.    
+
+test.js#strong
+modular unit tests. 
+
+file.js#strong
+relay file contents w/ node-fs-promises.
+list: file metadata array from path and subfolders, each filtered by tail content match
+fetch: binary/decoded buffer
+
+
+keys.json#strong
+provide agent credentials here:   
+pirate: http port,  
+secure: https port to open,  
+hashsecret: secret string used for cryprography,  
+orderlimit: maximum orders allowed for a user,  
+stripekey: your stripe.com api key to recieve payments,  
+mailgunkey: your mailgun api key to distribute emails.   
+
+client_keys.js#strong
+provide client credentials here:   
+export var googleapi,googlecid="google api key","google client id";
+
+
+
+

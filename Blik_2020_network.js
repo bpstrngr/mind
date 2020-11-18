@@ -1,4 +1,4 @@
-import document,{form,vectors as icons} from "./Blik_2020_document.js";
+import document,{form,vectors as icons,colors,spectrum,keys} from "./Blik_2020_document.js";
 import {path,retreat,note,svgns} from "./Blik_2020_window.js";
 import * as d3 from './Bostock_2020_d3v6.js';
 export {d3};
@@ -27,15 +27,17 @@ export default async function network(concept,options)
  let graph=svg.select("g.network");
  let links=graph.select("g.links").selectAll("g.link");
  let nodes=graph.select("g.nodes").selectAll("g.node");
- if(options.fragment)
+//alert(fragment);
+  if(fragment)
  links.data(vectors).each(link=>fuse(link))&&
- nodes.data(concept.descendants()).each((node,index)=>
- [node.x,node.y]=[nodes.nodes()[index].transform.baseVal[0].matrix,0].reduce(({e,f})=>[e,f]));
+ nodes.data(note(concept.descendants())).each((node,index)=>
+ [node.x,node.y]=!alert(nodes.nodes()[index].transform.baseVal[0].matrix)&&
+ [nodes.nodes()[index].transform.baseVal[0].matrix,0].reduce(({e,f})=>[e,f]));
  if(typeof navigator!="undefined")
  svg.call(d3.zoom().scaleExtent([0.3,16]).on("zoom",event=>graph.attr("transform",event.transform)));
  svg.node().simulation=d3.forceSimulation().alphaTarget(0.01).nodes(nodes.data()).force("link",d3.forceLink(vectors).strength(0)).on("tick"
 ,simulate({...options,svg,links,nodes,width,height,density:0,exposure:0,imposure:0,internal:0,complexity:0,dominance:0}));
- note(options.name,options.fragment?" tethered.":" ready.");
+ note(options.name,options.fragment?"tethered.":"ready.");
  return svg.node();
 }
 
@@ -78,13 +80,14 @@ var simulate=({window,placement,gradual,title,svg,links,nodes,width,height,densi
  "M"+start.x+","+start.y+"S"+start.x+","+start.y+" "+split.x+","+split.y)
 :line(placement)(link));
 
- let hold=tick++%10;
+ let hold=tick++%5;
  if(hold)return;
  tick-=tick-1;
 
  let grow=this.nodes().length!=nodes.size();
  let link=this.force("link").links().length!=links.size();
  if(!grow&&!link)return;
+ this.alpha(1)
 
  links=links.data(this.force("link").links().slice(0,gradual?links.size()+1:undefined),({source,target})=>source.title+target.title).join
 (enter=>
@@ -159,8 +162,9 @@ function node({simulation,nodes,defs,force,radius,title,width,height,links,windo
  nodes=!force?nodes:[nodes.select("circle.label"),nodes.select("circle.node")].map((circle,index)=>
  circle.attr("r",({centrality})=>(scale(centrality)||10)*(index||0.9)))[1].select(function(){return this.parentNode});
  else
- nodes=nodes.each(node=>!force?null:["x","y"].map((x,index)=>node[x]=node[x]||[width,height][index]/2)).append(node=>
-{let size=scale(node.centrality)||10;
+ nodes=nodes.size()&&nodes.append(node=>
+{if(force)["x","y"].map((x,index)=>node[x]=([width,height][index]/2));
+ let size=scale(node.centrality)||10;
  let cluster=!label(node,title)&&!node.parent;
  node=document.scan({g:
  {class:"node",filter:"url(#shadow)",transform:radius?"rotate("+(node.x*180/Math.PI-90)+") translate("+node.y+",0)":"translate("+node.x+","+node.y+") rotate(90)"
@@ -233,7 +237,7 @@ function patternify(node,index,patterns)
 +(name=="wiki image"?"siterestrict":"")
 +"?q="+label(node)+"&searchType=image&cx="
 +(name==="wiki image"?"014735265259933203879:xaftz2zw4io":"014735265259933203879:qgusnjqnuxk")
-+"&key="+keys.googleapi).then(response=>response.json()).then(json=>(json.items||[{link:undefined}])[0].link)
++"&key="+keys.google.api).then(response=>response.json()).then(json=>(json.items||[{link:undefined}])[0].link)
 :new Promise(done=>done(name.startsWith("http")?name:name=="image"
 ?vectors[name]?"vector/"+name:("icon/"+label(node)+".png")
 :"icon/"+name.replace(/ /g,"_")+".png"))).then(src=>
@@ -290,19 +294,6 @@ var label=({data},label,root)=>!data||data[label]||(typeof data=="string"?data:A
  label||(entries.length-1?root:[key,value].find(side=>typeof side=="string"))
 ,""));
 
-var colors=
-{service:"#fbbc05"
-,hazard:"#ea4335"
-,provider:"#2E7D32"
-,stakeholder:"#4285F4"
-,flora:"rgba(46,125,50)"
-,fauna:"rgba(198,40,40)"
-};
-var black=["white","black"];
-var google=["#ea4335","#fbbc05","#2E7D32","#4285F4","rgb(106,68,233)"];
-var rainbow=["#c62828","rgb(255,177,51)","#388e3c","#4285F4","#283593"];
-var spectrum=rainbow;
-spectrum=d3.scaleLinear().range(spectrum).domain(Array.apply(null,Array(spectrum.length--)).map((item,index)=>index/(spectrum.length)).reverse())
 //function spectrum(max){return "hsl("+max*360+",100%,50%)"};
 /*{max=Math.max(0,Math.min(1,max));
  return ["rgb(",[34.61,1172.33,10793.56,33300.12,38394.49,14825.05],[23.31,557.33,1225.33,3574.96,1073.77,707.56],[27.2,3211.1,15327.97,27814,22569.18,6838.66]].reduce((color,[base,five,four,three,two,one],index)=>

@@ -1,3 +1,5 @@
+import * as d3 from './Bostock_2020_d3v6.js';
+
 export async function cesium(source)
 {await import("https://cesium.com/downloads/cesiumjs/releases/1.70.1/Build/Cesium/Cesium.js");
  let frame=note(scan({"div":{id:"cesiumContainer","style":"width:100vw;height:50vh"}}))

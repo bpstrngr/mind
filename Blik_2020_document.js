@@ -1,6 +1,6 @@
 import document from "./Blik_2020_document.js";
-import {window,fetch,path,note,svgns,retreat,resolve} from "./Blik_2020_window.js";
-export {window,fetch,path,note,svgns,retreat,resolve};
+import {acquire,window,fetch,path,note,svgns,retreat,resolve} from "./Blik_2020_window.js";
+export {acquire,window,fetch,path,note,svgns,retreat,resolve};
 import script from "./Blik_2020_script.js";
 import network,{conceive,d3} from "./Blik_2020_network.js";
 export {d3};
@@ -11,13 +11,27 @@ import {WPCOM} from "./wordpress_2019_wpcom.js";
 import * as pdf from "./mozilla_2010_pdf.js";
 pdf.GlobalWorkerOptions.workerSrc='mozilla_2010_pdf_worker.js';
 
-export var [vectors,awesome]=['./Blik_2020_vectors.json','./blessochampion_2019_awesomesvgs.json'].map(async (module,index)=>(
+export var [vectors,awesome,keys]=['./Blik_2020_vectors.json','./blessochampion_2019_awesomesvgs.json',"./Blik_2020_client_keys.json"].map(async (module,index)=>(
 !globalThis.window
 ?import(module).then(module=>module.default)
 :(await fetch)(module).then(module=>module.json()).then(json=>JSON.parse(new TextDecoder("utf-8").decode(new Uint8Array(json.data))))).then(module=>
- index?awesome=module:vectors=module));
+ index?index-1?keys=module:awesome=module:vectors=module));
 
 export function compose(...operations){return operations.reduce((composition,operation)=>async(...input)=>operation(await composition(...input)));};
+
+export var colors=
+{service:"#fbbc05"
+,hazard:"#ea4335"
+,provider:"#2E7D32"
+,stakeholder:"#4285F4"
+,flora:"rgba(46,125,50)"
+,fauna:"rgba(198,40,40)"
+};
+var black=["white","black"];
+var google=["#ea4335","#fbbc05","#2E7D32","#4285F4","rgb(106,68,233)"];
+var rainbow=["#c62828","rgb(255,177,51)","#388e3c","#4285F4","#283593"];
+export var spectrum=rainbow;
+spectrum=d3.scaleLinear().range(spectrum).domain(Array.apply(null,Array(spectrum.length--)).map((item,index)=>index/(spectrum.length)).reverse());
 
 export function merge(target,source)
 {Object.keys(source).forEach(function(key)
@@ -52,10 +66,9 @@ export default
 ,media:function(resource,properties)
 {if(resource.constructor.name=="Buffer")
  resource=new TextDecoder("utf-8").decode(new Uint8Array(resource));
- note(resource)
  return resource.nodeName?resource:resource.startsWith("<")
 ?window.document.createRange().createContextualFragment(resource)
-:deform(resource).then(source=>window.document.createRange().createContextualFragment(resource))
+:deform(resource).then(source=>window.document.createRange().createContextualFragment(source))
 }
 ,portfolio:async function(source)
 {let name=scan({h1:{"#text":Object.keys(source)[0]}});
@@ -105,20 +118,21 @@ function repeat(tag)
 };
 //function repeat(svg,amount){addendum=new NodeList();for(iteration=0;iteration<amount;iteration++){next=svg;next.setAttribute("transform",svg.getAttribute("transform")+" "+svg.getAttribute(transform));addendum[iteration]=next;}return addendum};
 
-function scan(source,tag,namespace)
+function scan(source,parent,namespace)
 {if(typeof source=="string")
- source=vectors[source]||awesome[source.replace("_"," ")];
+ source=vectors[source]||awesome[source.replace("_"," ")]||source;
  if(typeof source=="string")
  return window.document.createRange().createContextualFragment(source);
  if(source)
  Object.entries(source).forEach(function([key,value])
 {if(!value)return;
  if(key=="#text"||value.nodeName)
- return (value=value.nodeName?value:window.document.createRange().createContextualFragment(value))&&tag
-?tag.appendChild(value)
+ return parent&&(
+ value=value.nodeName?value:window.document.createRange().createContextualFragment(value))
+?parent.appendChild(value)
 :value instanceof window.DocumentFragment?value:value[0];
  if(["string","number","boolean"].includes(typeof value))
- return tag.setAttribute(key,value.toString());
+ return parent.setAttribute(key,value.toString());
  if(key=="svg")
  namespace=svgns;
  Object.entries(
@@ -126,16 +140,19 @@ function scan(source,tag,namespace)
  ,svg:{viewBox:"0 0 1 1",xmlns:"http://www.w3.org/2000/svg"}
  }[key]||{}).forEach(([key,attribute])=>
  value[key]=value[key]||attribute);
- //if(key=="repeat"){while((value-=1)>1){let sibling=tag.cloneNode(true);sibling.setAttribute("transform",sibling.getAttribute("transform").concat(" ").repeat(value+1));tag.parentNode.appendChild(sibling);};return undefined}
- //tag=[tag&&tag.appendChild?tag:undefined,...
- tag=[tag&&tag.appendChild?tag:undefined,...Array.isArray(value)?value:[value]].reduce(function(tag,source,instance)
-{try{instance=namespace?window.document.createElementNS(namespace,key):window.document.createElement(key)}catch(fail){return tag}
- if(!tag)return scan(source,instance,namespace);
- if(value)scan(source,tag.appendChild(instance),namespace);
- return tag;
-})
+ //if(key=="repeat"){while((value-=1)>1){let sibling=parent.cloneNode(true);sibling.setAttribute("transform",sibling.getAttribute("transform").concat(" ").repeat(value+1));parent.parentNode.appendChild(sibling);};return undefined}
+ //parent=[parent&&parent.appendChild?parent:undefined,...
+ if(!parent||!parent.appendChild)parent=undefined;
+ parent=[parent,...Array.isArray(value)?value:[value]].reduce(function(parent,source)
+{let child=[...namespace?[namespace]:[],key];
+ try{child=window.document["createElement"+(namespace?"NS":"")](...child);}
+ catch(fail){return parent}
+ if(!parent)return scan(source,child,namespace);
+ if(value)scan(source,parent.appendChild(child),namespace);
+ return parent;
 });
- return tag;
+});
+ return parent;
 }
 
 export function insert(source,target,sibling)
@@ -143,12 +160,14 @@ export function insert(source,target,sibling)
  while(target.firstChild)
  target.firstChild.remove();
  source=source||[wheel.cloneNode(true),0].reduce(wheel=>["width","height"].map(side=>wheel.setAttribute(side,"50px"))&&wheel);
- return sibling
-?target.parentNode.insertBefore(source,target.nextSibling)
+ source=sibling
+?target.parentNode.insertBefore(source,target)
 :target.appendChild(source);
+ if(sibling)target.remove();
+ return source;
 }
 
-export function browser(title,favicon,scripts,styles=[],body={})
+export function hypertext(title,favicon,scripts,styles=[],body={})
 {return {html:
  {"head":
  {"title":{"#text":title}
@@ -159,7 +178,7 @@ export function browser(title,favicon,scripts,styles=[],body={})
 ,{"http-equiv":"Content-Type","content":"text/html;charset=UTF-8"}
 ,{"name":"theme-color","content":"#000000"}
 ,{"name":"description","content":""}
-,{"name":"viewport","content":"width=device-width, initial-scale=1.0"}
+,{"name":"viewport","content":"width=device-width, initial-scale=0.8"}
 ],"link":
 [{"rel":"icon","type":"image/"+(favicon?favicon.substring(favicon.length-3):"x-icon"),"href":favicon||"favicon.ico"}
 ].concat(styles.filter(style=>style.match(/^[^\n]+.css$/)).map(style=>({"rel":"stylesheet","href":style})))
@@ -243,8 +262,7 @@ export function conform(fields,inputs)
 export function reform(fields,reset)
 {//if(form instanceof window.Event)
  //form=form.currentTarget;
- note(fields)
- let group=Object.entries({...fields}).reduce((group,[key,value],index)=>
+ let group=Object.entries({...note(fields)}).reduce((group,[key,value],index)=>
  typeof value=="object"&&!value.length&&!index&&key,false);
  if(group)
  fields=Object.values(fields)[0];
@@ -267,12 +285,14 @@ export function reform(fields,reset)
  let label=form({[key]:value},this.labels).label[0];
  label.class=group;
  label.input.value=[input&&input.value,fields[key],label.input.value].find(value=>typeof value=="string");
+ if(Array.isArray(fields[key]))
+ label.input.value=fields[key].includes(label.input.value)?label.input.value:fields[key][0];
  return this[input?"replaceChild":"appendChild"](scan({label}),input&&input.parentNode)
 })
  Array.from(this.elements).forEach((input,index,inputs)=>
 {if(input.id=="name")
- input.form.insertBefore(input.closest("label"),inputs[0].closest("label"));
- if(input.type=="text"&&this.socket)
+ this.insertBefore(input.closest("label"),inputs[0].closest("label"));
+ if(input.type=="text"&&this.room)
  input.dispatchEvent(new window.Event("change",{bubbles:true}))
  if(!reset)
  return;
@@ -283,31 +303,30 @@ export function reform(fields,reset)
 }
 
 export async function deform(resource)
-{// text{style} text@source text#tag text/json#transform text#transform(text/json) 
- let text=new RegExp(/[A-Za-zÁÉÍÓÖŐÚŰÜáéíóöőúűü\d\:\.\;\/\?\=\&\-#\(\)]+/);
+{// text{style} text@source text#tag text/json#transform text#transform(text/json)
+ let text=new RegExp(/[A-Za-zÁÉÍÓÖŐÚŰÜáéíóöőúűü\d\:\.\;\/\?\=\&\-\'_#]+/);
  let json=new RegExp(/[{\[]{1}(?:[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}/,"m");
- let call=new RegExp("\\((?:(\""+text.source+"\"|"+json.source+")[,\)])+");
+ let call=new RegExp("\\((?:(\""+text.source+"\"|"+json.source+")[,\)]{0,1})+");
  let tags={"@":"name","#":"transform","{":"style"};
  let tag=new RegExp("(["+Object.keys(tags).join("")+"])("+json.source+"|"+text.source+"("+call.source+")*)[\}]*","g");
- let form=new RegExp("(?<=^|[ \n])("+text.source+"?[^\(\)\"\':, ])((?:"+tag.source+")+)","gm");
+ let form=new RegExp("(?<=^|[ \n])("+text.source+"?[^\(\)\"\':, \n"+Object.keys(tags).join("")+"])((?:"+tag.source+")+)","gm");
  let promises=await Promise.all([...resource.matchAll(form)].map(([match,title,input])=>
 {let {name,transform,style}=Object.fromEntries([...input.matchAll(tag)].map(([match,tag,value])=>[tags[tag],value]).reverse());
- [transform,name,input]=!transform||!transform.includes("(")?[transform,name||title,input]:[...transform.matchAll(json.source+"|"+text.source)].map(([match])=>match);
+ [transform,name,input]=!transform||!transform.includes("(")?[transform,name||title,input]:[...transform.matchAll(json.source+"|"+text.source)].map(([match])=>match.replace("(",""));
  try{name=JSON.parse(name)}catch(fail){}
  try{input=JSON.parse(input)}catch(fail){}
- note({name,transform,input})
  name=document[transform]
 ?document[transform].constructor==Function
 ?document[transform](name,input||{})
 :defer({name,transform,...input||{}})
-:refer(title,name,transform);
+:refer(title,name,transform||(name==title&&"span"));
  name.setAttribute("style",style);
  return name;
 }));
  return resource.replace(form,match=>(promises.shift()||{outerHTML:""}).outerHTML);
 }
 
-var defer=form=>scan({"img":{onload:"seed("+JSON.stringify(form)+",this,true);",src:"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"}})
+var defer=form=>scan({"img":{onload:"import('./Blik_2020_peer.js').then(({get})=>get("+JSON.stringify(form)+",this,true));",src:"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"}})
 var refer=(title,name,transform,elements={"audio":["mp3"],"img":["png","jpg","svg","gif"]})=>scan(
 {[transform||Object.keys(elements).find(key=>elements[key].includes(name&&name.slice(-3)))||"a"]:
 {"#text":(title||name).replace(/_/g," "),title,name:title||name,alt:title||name,href:name,src:name,controls:"on",onclick:!name?undefined

@@ -8,27 +8,23 @@ import v8 from "v8";
 import crypto from "crypto";
 import npm from "./package.json";
 
-export async function log(module,debug)
-{let log=debug?await debug:console.log;
+export function output(module,debug)
+{let output=debug||console.log;
  module=module.substring(Math.max(module.lastIndexOf("_"),module.lastIndexOf("/"))+1,module.lastIndexOf(".")).toUpperCase();
- return function(...note)
+ return function(...input)
 {let stack=new Error().stack.split(/\n */)[2];
  let name=stack.replace(/^.*at |[^ ]*$/g,"");
- let place=stack.match(/file[^\)]*/,"")[0];
- log("\x1b[31m"+clock(new Date())+"\x1b[37m"+module+"."+name);
- log(...note);
- console.log("\x1b[30m"+place+"\x1b[0m");
- return note[0]
+ let place=stack.match(/file[^\)]*/,"");
+ output("\x1b[31m"+clock(new Date())+"\x1b[37m"+module+"."+name);
+ output(...input);
+ place&&output("\x1b[30m"+place[0]+"\x1b[0m");
+ return input[0]
 };
 };
 
-var debug=import("util").then(util=>util.debuglog(import.meta.url.substring(import.meta.url.lastIndexOf("_")+1,import.meta.url.lastIndexOf("."))));
-
-var note=log(import.meta.url).then(log=>note=log)
-
-var exclusions=import(npm.codes).then(codes=>
+var exclusions=import(npm.parameters).then(parameters=>
 exclusions=
-[npm.codes,...Object.values(codes.default).map(mode=>mode.certification).flat()
+[npm.parameters,...Object.values(parameters.default).map(mode=>mode.certification).flat().filter(Boolean)
 ,"*.cjs","*.kml","*.pem"
 ,"*.doc",".gdoc","*.gslides","*.pdf"
 ,".gitignore","*certificate*.json","token.json"
@@ -70,28 +66,31 @@ export default
 });
  return !files?functions:Object.assign(files,functions);
 }
-,post:async function(file,content,force)
-{note("updating",file);
- let create=await fs.open(path.join(file),"wx").catch(note);
- if(!(create instanceof Error))
- return await this.put(create,content,false);
- if(!force)
- return note(create);
- let update=await fs.open(path.join(file),force=="append"?"a":"r+").catch(note);
- if(update instanceof Error)
- return update;
- let remove=force!="append"&&
- await fs.truncate(path.join(file)).catch(note);
- if(!(remove instanceof Error))
- return await this.put(update,content,force=="append").catch(note);
+,put:async function(request)
+{let url=path.join(...request.url);
+ let fresh=await fs.open(url,"wx").catch(fail=>fail);
+ if(!(fresh instanceof Error))
+ return await save(fresh,request.body,false);
+ if(!request.query||!request.query.force)return fresh;
+ let stale=await fs.open(url,request.query.force=="append"?"a":"r+");
+ if(request.query.force!="append")
+ await stale.truncate().catch(fail=>fail);
+ if(stale instanceof Error)return stale;
+ return await save(stale,request.body,request.query.force=="append");
 }
-,put:async function(descriptor,content,append)
-{let change=append?fs.appendFile:fs.writeFile;
- change=await change(descriptor,content,'utf-8');
- descriptor.close();
- return descriptor;
+,delete:async function(request)
+{let address=Object.fromEntries(request.headers.origin.split(/:\/+|:/g).map((path,index)=>
+ [["protocol","hostname","port"][index],path+(!index?":":"")]));
+ let [match,authority]=request.headers.cookie.match(/authority=([^;]*);/)||[];
+ let get=path=>new Promise(resolve=>import(address[0].substring(0,-1)).then(({request})=>
+ request(note({...address,path,method:"get"}),response=>
+ response.setEncoding("utf8").on("data",compose(JSON.parse,resolve))).end())).then(note)
+ let {author}=authority&&await get("/authority/"+authority);
+ let {rank}=author&&await get("/mind/"+author);
+ if(rank!="ranger")
+ return "unauthorised";
+ return fs.unlink(path.resolve(...request.url)).then(done=>request.url+" deleted");
 }
-,delete(file,output){try{fs.unlinkSync(path.join(file));return output("deleted "+file);}catch(fail){debug(fail)};}
 }
 
 export async function read(file,mode)
@@ -170,3 +169,16 @@ export async function modules(module)
 :module))).then(imports=>({module,imports})).catch(fail=>({module,fail})))
 :{module}
 }
+
+async function save(descriptor,content,append)
+{let change=append?fs.appendFile:fs.writeFile;
+ let fail=await change(descriptor,content,'utf-8').catch(fail=>fail);
+ descriptor.close();
+ return fail||content;
+}
+
+function compose(...operations){return operations.reduce((composition,operation)=>(...input)=>operation(composition(...input)));};
+
+var debug=import("util").then(util=>util.debuglog(import.meta.url.substring(import.meta.url.lastIndexOf("_")+1,import.meta.url.lastIndexOf("."))));
+
+var note=output(import.meta.url);

@@ -1,6 +1,6 @@
 *
 !package.json
-!Blik_2020_test.js
+!Blik_2020_integrity.js
 !Blik_2020_peer.js
 !Blik_2020_seed.js
 !Blik_2020_room.js
@@ -14,6 +14,7 @@
 !Blik_2020_geodesy.js
 !Blik_2020_script.js
 !Blik_2020_stat.js
+!Blik_2020_root_tests.js
 !readme
 !.gitignore
 
@@ -27,3 +28,5 @@
 !rauch_2014_socket.io.slim.js
 !mozilla_2010_pdf.js
 !mozilla_2010_pdf_worker.js
+
+.vercel

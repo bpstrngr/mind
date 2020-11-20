@@ -178,7 +178,7 @@ export function hypertext(title,favicon,scripts,styles=[],body={})
 ,{"http-equiv":"Content-Type","content":"text/html;charset=UTF-8"}
 ,{"name":"theme-color","content":"#000000"}
 ,{"name":"description","content":""}
-,{"name":"viewport","content":"width=device-width, initial-scale=0.8"}
+,{"name":"viewport","content":"width=device-width, initial-scale=1.0"}
 ],"link":
 [{"rel":"icon","type":"image/"+(favicon?favicon.substring(favicon.length-3):"x-icon"),"href":favicon||"favicon.ico"}
 ].concat(styles.filter(style=>style.match(/^[^\n]+.css$/)).map(style=>({"rel":"stylesheet","href":style})))

@@ -39,7 +39,7 @@ async function vanilla(request,{resource,title,...fields}={})
  resource=this[fields.name]?await [this[fields.name],0].reduce(route=>[route,route.get].find(route=>typeof route=="function"))(request):await this.get(fields.name);
  let fragment=await perform({resource,...fields},form);
  title=title||fields.name;
- let center=document.scan({center:{id:"object",title,fragment,style:"padding:10px"}});
+ let center=document.scan({center:{id:"object",title,fragment,style:"padding:25px"}});
  await throttle(fragment);
  return document.scan(hypertext(title,favicon,["Blik_2020_peer.js"],[await style()],{center,form}));
 }

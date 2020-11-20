@@ -237,7 +237,7 @@ var extend=function(method,input)
 
 function send()
 {if(!this.message.value)return;
- note(this.room.emit("message",{room:this.room.name,message:this.message.value}));
+ this.room.emit("message",{room:this.room.name,message:this.message.value});
  this.message.value="";
 }
 
@@ -273,7 +273,7 @@ window.onload=async function()
  await Promise.all([vectors,awesome]);
  Object.assign(window,{note,resolve});
  await import("./rauch_2014_socket.io.slim.js");
- window.subject.room=io.connect(window.location.origin);
+ window.subject.room=io({transports:['websocket']}).connect(window.location.origin);
  await open(window.subject);
  let fields=Object.fromEntries([...new URLSearchParams(window.location.search)]);
  if(fields.source)(fields.name=fields.source)&&delete fields.source;

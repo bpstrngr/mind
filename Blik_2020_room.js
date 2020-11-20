@@ -3,7 +3,9 @@ import {note,fetch,compose} from "./Blik_2020_window.js";
 
 export async function open(port,room)
 {let socket=await import(process.execPath.replace("bin/node","lib/node_modules")+"/socket.io/lib/index.js");
- socket.default(port).on("connection",async function(peer)
+ socket=socket.default(port);
+ socket.set("transports",['websocket']);
+ socket.on("connection",async function(peer)
 {let {referer,cookie}=peer.handshake.headers;
  let author=cookie&&cookie.match(/signature=[^;]+/);
  let url=author&&author[0].replace("=","/");

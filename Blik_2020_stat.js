@@ -218,7 +218,7 @@ export async function dashboard(backlog)
 {let room="SEI_2020_course_development.json"
  let states=["new","pending","done"];
  let members=["","Ray","Patrick","Anthony","Robert","Lax","Rom","Nathan","Dali","Reid"];
- let put=body=>window.subject.room.emit("put",{room,body:note(body)});
+ let put=body=>Object.entries({join:room,put:{room,body}}).forEach(entry=>window.subject.room.emit(...entry));
  let style="text-align:center;background-color:var(--isle);border-radius:10px;cursor:pointer;max-width:"+100/states.length+"vw;padding:10px;";
   let tr=["th","td"].map((row,td)=>({[row]:states.map(id=>td?{id}:{"#text":id})}));
  Object.assign(tr[1].td[0],{div:{id:"plus",style,class:"card",svg:{...vectors.plus.svg,width:"3em"}}});

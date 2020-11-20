@@ -70,13 +70,13 @@ export default
 {let url=path.join(...request.url);
  let fresh=await fs.open(url,"wx").catch(fail=>fail);
  if(!(fresh instanceof Error))
- return await save(fresh,request.body,false);
+ return await save(fresh,request.body,false,url);
  if(!request.query||!request.query.force)return fresh;
  let stale=await fs.open(url,request.query.force=="append"?"a":"r+");
  if(request.query.force!="append")
  await stale.truncate().catch(fail=>fail);
  if(stale instanceof Error)return stale;
- return await save(stale,request.body,request.query.force=="append");
+ return await save(stale,request.body,request.query.force=="append",url);
 }
 ,delete:async function(request)
 {let address=Object.fromEntries(request.headers.origin.split(/:\/+|:/g).map((path,index)=>
@@ -170,11 +170,11 @@ export async function modules(module)
 :{module}
 }
 
-async function save(descriptor,content,append)
+async function save(descriptor,content,append,url)
 {let change=append?fs.appendFile:fs.writeFile;
  let fail=await change(descriptor,content,'utf-8').catch(fail=>fail);
  descriptor.close();
- return fail||content;
+ return fail||url;
 }
 
 function compose(...operations){return operations.reduce((composition,operation)=>(...input)=>operation(composition(...input)));};

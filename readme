@@ -1,39 +1,49 @@
 #!/bin/bash
-node --inspect --experimental-json-modules -e 'import("./Blik_2020_seed.js").then(seed=>seed.open("./Blik_2020_root.js","https"))';
+node --inspect --experimental-json-modules -e 'import("./Blik_2020_seed.js").then(seed=>seed.open("./Blik_2020_root.js","./Blik_2020_parameters.json","https"))';
 exit 0
-dsa
-Execute this readme to seed.
-Check to specify the protocol you need (http/https).
-Package/bundle acquisition and testing are all implied, not separate.
-(parameters.json is intercepted by "package.json" only for npm versioning).
+
+Execute this readme to seed... 
+Check to specify a route and a parameter module, 
+the latter containing external credentials for the 
+protocol you need (http/https) and further external 
+resources (approved protocol certification, oauth keys etc.). 
+Global acquisition and respective local bundling of dependencies, 
+as well as testing are all implied, forget nebulous build steps and syntaxtical pollutants (esoteric babel/webpack, jsx etc.). 
+
+These dependencies are defined in a complacent 
+"package.json" along with npm versioning. 
+That's as suckless@http://suckless.org/philosophy/ as I could get. 
 
 
-itinerary#strong :
-dragon#scan{height:1em;fill:green} crucial snail#scan{height:1em;fill:#795548} proposal apple#scan{height:1em;fill:#b71c1c} ready worm#scan{height:1em} bug
+legend#strong : apple#scan{height:1em;fill:#b71c1c} ready dragon#scan{height:1em;fill:green} coming snail#scan{height:1em;fill:#795548} proposal worm#scan{height:1em} bug
 
 
-syntax_guide#strong :
+syntax_rules#strong :
 #1#strong one line: one statement.
 #2#strong break before block specifiers,
-ternary, array operators ([]{}?:).
+ternary, array operators ([,]{}?:).
 #3#strong indent blocks with one space.
-sequence#strong : imports, exports, default export, internal functions, internal variables, expressions
+order#strong : imports, exports, default export, internal functions, internal variables, expressions
 
 
 corridor#scan{height:1em;fill:white}
 root.js#strong
-form#strong : html radio form to
-select path offering module options.
-default to input path, switching that of "/" to "module".
-react#strong : reproduction of "form" in react's dialect
-mind#strong : hmac-key-authenticated identity.
-mind.get#strong :
-authority#strong : for randomstring-session token.
-order#strong : scheduled external request.
-stuff#strong for orderable shop items.
-store.get#strong :
-mongo.get#strong :
-matrix.get#strong :
+peer#strong : html form to transform a source from ./get. 
+defaults to input path network. 
+empty paths (*/) bind back here. 
+hmac-key-authenticated peers get badges. 
+react#strong : reproduction of peer with react. 
+get#strong : this object and filesystem. 
+put#strong : add to filesystem. 
+delete#strong : delete from filesystem. 
+mind.get#strong : registered peers. 
+mind.put#strong : register peer. 
+mind.delete#strong : unregister peer. 
+signature.get#strong : peer identifiers. 
+signature.put#strong : identify peer. 
+signature.delete#strong : unidentify peer. 
+order#strong : scheduled external request. 
+mongo.get#strong : mongo cluster. 
+matrix.get#strong : matrix cluster. 
+google#strong : google api. 
 modules#strong : module import hierarchy from babel-parser's abstract syntax tree
-peripheries#strong : module
-

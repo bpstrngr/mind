@@ -12,7 +12,8 @@
   "module": "./Blik_2020_seed.js",
   "scripts": {
     "run":"./readme",
-    "rollup": "rollup --format=module -p @rollup/plugin-multi-entry,@rollup/plugin-json,@rollup/plugin-node-resolve --file "
+    "rollup": "rollup --format=module -p @rollup/plugin-multi-entry,@rollup/plugin-json,@rollup/plugin-node-resolve --file ",
+    "lint": "for f in Blik*.js;do acorn --silent --module --ecma2016 $f;echo $?;done"
   },
   "dependencies": {
     "node-forge": "latest",
@@ -46,17 +47,23 @@
         "basic-setup/dist/index.js"
       ]
     },
-    "Bostock_2020_d3_v6.js": {
+    "Bostock_2020_d3v6.js": {
       "d3": [
         "node_modules/d3-selection/src/index.js",
         "node_modules/d3-hierarchy/src/index.js",
+        "node_modules/d3-shape/src/index.js",
         "node_modules/d3-scale/src/index.js",
         "node_modules/d3-force/src/index.js",
         "node_modules/d3-zoom/src/index.js",
+        "node_modules/d3-axis/src/index.js",
         "node_modules/d3-drag/src/index.js",
         "node_modules/d3-geo/src/index.js"
       ]
     },
+    "mozilla_2020_pdf.js": {"pdfjs-dist": ["lib/pdf.js"]},
+    "mozilla_2020_pdf_worker.js": {"pdfjs-dist": ["lib/pdf.worker.js"]},
+    "mozilla_2020_pdf_viewer.js": {"pdfjs-dist": ["lib/pdf_viewer.js"]},
+    "mozilla_2020_pdf_link_service.js": {"pdfjs-dist": ["lib/pdf_link_service.js"]},
     "domenic_2020_jsdom.js": {
       "jsdom": [
         "lib/api.js"
@@ -67,6 +74,5 @@
         "lib/pki.js"
       ]
     }
-  },
-  "parameters": "./Blik_2020_parameters.json"
+  }
 }

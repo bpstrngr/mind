@@ -1,4 +1,4 @@
-import document from "./Blik_2020_document.js";
+import {scan} from "./Blik_2020_document.js";
 import {note,fetch,compose} from "./Blik_2020_window.js";
 
 export async function open(port,room)
@@ -37,9 +37,8 @@ export default
  await import("./haverbeke_2020_codemirror.js");
  if(!this.room.track)this.room.track=await fetch(room).then(doc=>
  EditorState.create({doc:doc.toString(),extensions:[collab()]}));
- let received=updates.map(serializechanges).map((changes,index)=>({...updates[index],changes}));
  //if(note([version,getSyncedVersion(this.room.content)]).reduce((next,past)=>next>past))
- this.room.track.update(receiveUpdates(this.room.track,received));
+ await update(this.room.track,updates);
  let body=this.room.track.doc.toString();
  let headers={"Content-Type":"text/plain"};
  let message=await fetch(room+"?force=overwrite",{method:"put",body,headers});
@@ -72,7 +71,7 @@ export default
 
 export var peer=
  {message({message,author:{name,image}})
-{message=document.scan({li:{img:{src:image||"vector/anonymous",height:"12px"},div:{"#text":name||"anonymous"},span:{"#text":message}}})
+{message=scan({li:{img:{src:image||"vector/anonymous",height:"12px"},div:{"#text":name||"anonymous"},span:{"#text":message}}})
  if(name=="system")
  setTimeout(done=>(message.style="opacity:0;transition:all 1s;")&&
  setTimeout(done=>message.remove()
@@ -86,21 +85,23 @@ export var peer=
 },signal(signal)
 {let list=this.message.parentNode.querySelector("ul");
  let node=list.querySelector("span#signal");
- list[node?"replaceChild":"appendChild"](document.scan({span:{id:"signal",signal:window.document.createRange().createContextualFragment(signal)}}),node);
+ list[node?"replaceChild":"appendChild"](scan({span:{id:"signal",signal:window.document.createRange().createContextualFragment(signal)}}),node);
  node=list.querySelector("span#signal");
  signal=node.textContent;
  setTimeout(timeout=>node.textContent==signal&&node.remove(),3000);
 },save({author,room,updates})
 {if(author==window.subject.labels.message)
  return window.Tone.Transport.start();
- updates.map(serializechanges).forEach((changes,index)=>
- Object.assign(updates[index],{changes}));
- this.room.content.update([receiveUpdates(this.room.content.viewState.state,updates)]);
+ update(this.room.content.viewState.state,updates).then(updates=>
+ this.room.content.update([updates]));
 }}
 
-var system={name:"system",icon:"vector/deer"};
-
-var serializechanges=({changes})=>
-Array.isArray(changes)
+var update=(state,updates)=>
+import("./haverbeke_2020_codemirror.js").then(({ChangeSet,receiveUpdates})=>
+receiveUpdates(state,updates.map(({changes})=>
+ Array.isArray(changes)
 ?ChangeSet.fromJSON(changes)
-:changes.toJSON();
+:changes.toJSON()).map((changes,index)=>
+ Object.assign(updates[index],{changes}))));
+
+var system={name:"system",icon:"vector/deer"};

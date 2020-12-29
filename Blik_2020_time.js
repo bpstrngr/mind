@@ -1,5 +1,7 @@
 export default function clock(date,precision="time")
-{if(!date||!date.getFullYear)
+{if(!isNaN(Number(date)))
+ date=new Date(date);
+ if(!date||!date.getFullYear)
  date=new Date();
  let time=
 [""

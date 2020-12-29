@@ -44720,4 +44720,3 @@ exports.PDFImage = PDFImage;
 
 });
 
-export { pdf_worker as __moduleExports };

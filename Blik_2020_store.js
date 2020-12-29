@@ -5,7 +5,7 @@ var note=output(import.meta.url);
 export default
  (resource,key,hash)=>
 ({get:async function(request)
-{let records=await file.get(resource);
+{let records=await file.get(resource,"object");
  if(!records)records=await file.put({url:[resource],body:"{}"})
  return records[request.url.shift()]||records;
 },delete:async function(request)

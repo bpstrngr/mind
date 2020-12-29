@@ -1,4 +1,5 @@
-import document,{window,d3,spectrum,vectors,awesome} from "./Blik_2020_document.js";
+import {window,scan,color,vectors,awesome,note,svgns} from "./Blik_2020_document.js";
+import * as d3 from './Bostock_2020_d3v6.js';
 import clock from "./Blik_2020_time.js";
 
 export async function model(source)
@@ -7,12 +8,12 @@ export async function model(source)
  let r=400;
  var space=window.document.createElement("div");
  space.style="height:100vh;width:100vw;position:relative;";
- space.appendChild(document.scan(source.car_front)).style=center+"width:200px;";
+ space.appendChild(scan(source.car_front)).style=center+"width:200px;";
  let models=Object.keys(source);
  models.forEach(function(item,index)
 {//index++;
  let ratio=((models.length/2-index)/models.length);
- if(item.startsWith("road_"))space.appendChild(document.scan(source[item])).style=center+"width:70px;transform:translate("+ratio*r+"px,"+Math.abs(ratio*r)+"px)"
+ if(item.startsWith("road_"))space.appendChild(scan(source[item])).style=center+"width:70px;transform:translate("+ratio*r+"px,"+Math.abs(ratio*r)+"px)"
 })
  return space
 }
@@ -42,7 +43,7 @@ export async function column(history)
  timestamp.style.verticalAlign="middle";timestamp.style.display="inline-block";
  days=(year*365)+((((new Number(entry.substring(4,6))-1)/12))*365)+(new Number(entry.substring(6)));console.log(days,origin,previous)
  days=days-origin-previous;console.log("relative days",days)
- document.scan(history[entry].icon,graphic);
+ scan(history[entry].icon,graphic);
  last=graphic.childNodes[graphic.childNodes.length-1];
  last.style.width="80px";last.style.height=last.style.width;last.style.padding="5px";last.style.marginTop=days/5/2+"px";last.style.marginBottom=last.style.marginTop;last.style.borderRadius=last.style.borderRadius?last.style.borderRadius:"50%";last.style.verticalAlign="middle";last.style.backgroundImage="radial-gradient(black 50%,transparent 70%)";
  if(last.nodeName=="IMG")last.onload=function()
@@ -71,8 +72,8 @@ export async function row(source)
  let piece=typeof value=="string"
 ?value[0]=="<"
 ?window.window.document.createRange().createContextualFragment(value).firstChild
-:document.scan({"td":{...[{},{"div":value.length?{"img":{"src":value,"onload":"let verticality=event.target.naturalHeight-event.target.naturalWidth,normalverticality=verticality/event.target[verticality>0?'naturalHeight':'naturalWidth'];event.target.style[verticality>0?'width':'height']='100%';event.target.style[verticality>0?'marginTop':'marginLeft']=(normalverticality/2)*(verticality>0?-1:1)*(100+Math.abs(normalverticality)*100)+'%';"}}:undefined},{"span":{"#text":key,"style":"display:block;white-space:pre;"+([...key].every(char=>char==char.toUpperCase())||!key.includes("(")?"font-weight:700":undefined)}}].sort(()=>homogenous?0:-1).reduce((td,props)=>({...td,...props})),"style":"text-align:center"}})
-:document.scan(value);
+:scan({"td":{...[{},{"div":value.length?{"img":{"src":value,"onload":"let verticality=event.target.naturalHeight-event.target.naturalWidth,normalverticality=verticality/event.target[verticality>0?'naturalHeight':'naturalWidth'];event.target.style[verticality>0?'width':'height']='100%';event.target.style[verticality>0?'marginTop':'marginLeft']=(normalverticality/2)*(verticality>0?-1:1)*(100+Math.abs(normalverticality)*100)+'%';"}}:undefined},{"span":{"#text":key,"style":"display:block;white-space:pre;"+([...key].every(char=>char==char.toUpperCase())||!key.includes("(")?"font-weight:700":undefined)}}].sort(()=>homogenous?0:-1).reduce((td,props)=>({...td,...props})),"style":"text-align:center"}})
+:scan(value);
  if(!piece)console.log(key,value);
  piece=frame.appendChild(piece);
  if(piece.nodeName.toUpperCase()=="SVG")
@@ -82,7 +83,7 @@ export async function row(source)
  piece.setAttribute("title",key);
  piece.id=key.replace(" ","_");
  return frame//.closest('table')
-},document.scan({"table":{"tbody":{"tr":{}},"class":homogenous?"homogenous":"heterogenous"}}).childNodes[0].childNodes[0]).closest("table");
+},scan({"table":{"tbody":{"tr":{}},"class":homogenous?"homogenous":"heterogenous"}}).childNodes[0].childNodes[0]).closest("table");
 }
 
 export function table(source,depth,palette)
@@ -92,7 +93,7 @@ export function table(source,depth,palette)
 {let shade=depth>2&&Array.isArray(palette)?d3.scaleLinear().range([palette[index],(palette[index]||palette[0]||spectrum(index/records.length).replace(")","0)")).replace("0)","1)")]):palette;
  row=row.appendChild(window.document.createElement("tr"));
  row.appendChild(window.document.createElement("td")).appendChild(window.document.createElement("span")).textContent=key;
- row.appendChild(document.scan({"td":{"style":"text-align:center;width:150px;"}})).appendChild(typeof value=="string"?document.scan({"span":{"#text":value,"style":"background-color:"+(typeof value=="string"?value.match(/\d+/)?spectrum((15-new Number(new Number(value.match(/\d+/)[0]))+1)/20)+";color:#212121;":"black;color:#848484;":"transparent;")+"border-radius:1em 1em 1em 1em;height:1em;padding:0 5px 0 5px;white-space:nowrap"}}):table(value,depth+1,shade));
+ row.appendChild(scan({"td":{"style":"text-align:center;width:150px;"}})).appendChild(typeof value=="string"?scan({"span":{"#text":value,"style":"background-color:"+(typeof value=="string"?value.match(/\d+/)?color.rainbow((15-new Number(new Number(value.match(/\d+/)[0]))+1)/20)+";color:#212121;":"black;color:#848484;":"transparent;")+"border-radius:1em 1em 1em 1em;height:1em;padding:0 5px 0 5px;white-space:nowrap"}}):table(value,depth+1,shade));
  if(depth>2)row.style.backgroundColor=shade(1/depth);
  return row.parentNode
 },window.document.createElement("table").appendChild(window.document.createElement("tbody")));
@@ -106,35 +107,58 @@ export async function matrix(source)
  source=source.sort((past,next)=>next.path.slice(-1)[0]=="provider"?-1:0).sort((past,next)=>next.path.slice(-1)[0]=="service"?-1:0).sort((past,next)=>next.path.slice(-1)[0]=="stakeholder"?-1:0);
  let translation={"attraction":"látványosság","intelligence":"világkép","recreation":"feltöltődés","identity":"identitás","hay":"széna","air":"tiszta levegő","nectar":"nektár","herbs":"gyógynövény","invasion":"invázió","construction":"épitkezés","biking":"motorozás","forestation":"cserjésedés","civilisation":"civilizáció","litter":"szemetelés","trampling":"taposás","desolation":"elhanyagolás","reaping":"kaszálás","policy":"szabályozás","arson":"gyújtogatás","pollution":"szennyezés","desertification":"sivatagosodás","conflict":"konfliktus","fire":"tűz","lumbering":"favágás","grazing":"legeltetés","oakforest":"tölgyes","marsh":"láp","lake":"tó","meadow":"rét","diversity":"sokféleség","terrain":"domborzat","greenness":"zöldfelület","scenery":"kilátás","moisture":"nedvesség","shooting_range":"lőtér","palacepark":"kastélykert","scrubs":"cserjés","glades":"tisztás","kurjancs":"kurjancs","residents":"helyiek","government":"önkormányzat","associations":"egyesületek","hikers":"kirándulók","rangers":"Nemzeti Park","owners":"tulajdonosok","youth":"fiatalok","ministry":"állam","palace_director":"kastélyigazgató","teachers":"tanárok","secondary_residents":"kiköltözők","scientists":"kutatók","athletes":"sportolók","artists":"művészek","guardians":"mezőőrség","farmers":"gazdálkodók","health-conscious":"egészségtudatosak"};
  let matrix=source.map((concept,index,concepts)=>[new Array(concepts.length),...Object.entries(concept.relations||{})].reduce((record,[target,vector])=>{record[source.findIndex(({name})=>name==target)]=vector;return record}));
- let table=document.scan({"table":{"class":"adjacency","tbody":{}}}).childNodes[0];
- ["",...source].reduce((header,{name},index)=>document.scan({"td":{"span":{"#text":translation[name]||name,"span":index?{"img":{"src":"icon/"+name+".png","onload":"let verticality=event.target.naturalHeight-event.target.naturalWidth,normalverticality=verticality/event.target[verticality>0?'naturalHeight':'naturalWidth'];event.target.style[verticality>0?'width':'height']='100%';event.target.style[verticality>0?'marginTop':'marginLeft']=(normalverticality/2)*(verticality>0?-1:1)*(100+Math.abs(normalverticality)*100)+'%';"},"style":"background-color:"+colors[(Object.values(source)[index-1]||{path:[]}).path.slice(-1)](0)}:{"#text":""}}}},header),table.appendChild(window.document.createElement("tr"))).id="header";
- ["",...source].reduce((row,concept,index)=>document.scan({"td":{"#text":index||""}},row),table.appendChild(window.document.createElement("tr")))
+ let table=scan({"table":{"class":"adjacency","tbody":{}}}).childNodes[0];
+ ["",...source].reduce((header,{name},index)=>scan({"td":{"span":{"#text":translation[name]||name,"span":index?{"img":{"src":"icon/"+name+".png","onload":"let verticality=event.target.naturalHeight-event.target.naturalWidth,normalverticality=verticality/event.target[verticality>0?'naturalHeight':'naturalWidth'];event.target.style[verticality>0?'width':'height']='100%';event.target.style[verticality>0?'marginTop':'marginLeft']=(normalverticality/2)*(verticality>0?-1:1)*(100+Math.abs(normalverticality)*100)+'%';"},"style":"background-color:"+colors[(Object.values(source)[index-1]||{path:[]}).path.slice(-1)](0)}:{"#text":""}}}},header),table.appendChild(window.document.createElement("tr"))).id="header";
+ ["",...source].reduce((row,concept,index)=>scan({"td":{"#text":index||""}},row),table.appendChild(window.document.createElement("tr")))
  matrix.forEach((record,index)=>
 {[table.appendChild(window.document.createElement("tr")),index+1,...record,index+1
- ].reduce((row,vector,field)=>document.scan({"td":{"#text":field>1&&(field-2<matrix.length)?(vector||0).toFixed(1).toString().replace("0.0",""):vector,"style":(field<2||matrix.length+1<field)||("border:none;background:"+colors[source[field-2].path.slice(-1)](0).replace(")",",0.5)")+" linear-gradient(to bottom,"+((colors[source[index].path.slice(-1)](0).replace(")",",0.5))")).repeat(2).replace(")",",")))}},row));
+ ].reduce((row,vector,field)=>scan({"td":{"#text":field>1&&(field-2<matrix.length)?(vector||0).toFixed(1).toString().replace("0.0",""):vector,"style":(field<2||matrix.length+1<field)||("border:none;background:"+colors[source[field-2].path.slice(-1)](0).replace(")",",0.5)")+" linear-gradient(to bottom,"+((colors[source[index].path.slice(-1)](0).replace(")",",0.5))")).repeat(2).replace(")",",")))}},row));
 });
- ["",...matrix].reduce((row,field,index)=>document.scan({"td":{"#text":index||field}},row),table.appendChild(window.document.createElement("tr")));
+ ["",...matrix].reduce((row,field,index)=>scan({"td":{"#text":index||field}},row),table.appendChild(window.document.createElement("tr")));
  function exposure(index,weight){return matrix.reduce((value,record)=>value+(weight?record[index]||0:(record[index]>0)),0)}
  function imposure(index,weight){return matrix[index].reduce((value,field)=>value+(typeof weight=="number"?(field||0)*weight:weight?field||0:(field>0)),0)}
  function sum(row,count){return Array.from(row.childNodes).slice(1,matrix.length+1).reduce((sum,field,index,record)=>sum+(count?new Number(field.textContent)>0:new Number(field.textContent)>0?new Number(field.textContent):0),0)}
  let input=table.appendChild(window.document.createElement("tr"));input.setAttribute("id","input");
  let output=table.appendChild(window.document.createElement("tr"));output.setAttribute("id","output");
- [document.scan(vectors["door_enter"]).outerHTML,...matrix.map((record,index)=>exposure(index)||awesome["fas fa-satellite-dish"]),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(2)+" ("+((sum(row)/(matrix.length*(matrix.length-1)))*100).toFixed(2)+"%)":field:field,"style":"white-space:nowrap"}},row),input);
- [document.scan(vectors["door_leave"]).outerHTML,...matrix.map((record,index)=>imposure(index)||awesome["fas fa-satellite"]),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(2)+" ("+((sum(row)/(matrix.length*(matrix.length-1)))*100).toFixed(2)+"%)":field:field,"style":"white-space:nowrap"}},row),output);
+ [scan(vectors["door_enter"]).outerHTML,...matrix.map((record,index)=>exposure(index)||awesome["fas fa-satellite-dish"]),0].reduce((row,field,index)=>scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(2)+" ("+((sum(row)/(matrix.length*(matrix.length-1)))*100).toFixed(2)+"%)":field:field,"style":"white-space:nowrap"}},row),input);
+ [scan(vectors["door_leave"]).outerHTML,...matrix.map((record,index)=>imposure(index)||awesome["fas fa-satellite"]),0].reduce((row,field,index)=>scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(2)+" ("+((sum(row)/(matrix.length*(matrix.length-1)))*100).toFixed(2)+"%)":field:field,"style":"white-space:nowrap"}},row),output);
  let ratio=table.appendChild(window.document.createElement("tr"));ratio.setAttribute("id","ratio");
- ["i/o",...matrix.map((record,index)=>exposure(index)/imposure(index)),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/sum(row,true)).toFixed(2):field==Infinity?awesome["fas fa-flag-checkered"]:field>0?field.toFixed(1):awesome["fas fa-flag-checkered"]:field}},row),ratio);
+ ["i/o",...matrix.map((record,index)=>exposure(index)/imposure(index)),0].reduce((row,field,index)=>scan({"td":{"#text":index?index>matrix.length?(sum(row)/sum(row,true)).toFixed(2):field==Infinity?awesome["fas fa-flag-checkered"]:field>0?field.toFixed(1):awesome["fas fa-flag-checkered"]:field}},row),ratio);
  input=table.appendChild(window.document.createElement("tr"));input.setAttribute("id","exposure");
  output=table.appendChild(window.document.createElement("tr"));output.setAttribute("id","imposure");
- [document.scan(vectors["scale_imbalanced"]).outerHTML,...matrix.map((record,index)=>exposure(index,true).toFixed(1)),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(3):field:field,"style":matrix.length<index||!index?undefined:"color:"+(["provider","hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")}},row),input);
- [document.scan({svg:{...vectors["scale_imbalanced"].svg,"style":"transform:scaleX(-1)"}}).outerHTML,...matrix.map((record,index)=>imposure(index,true).toFixed(1)),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(3):field:field,"style":matrix.length<index||!index?undefined:"color:"+(["hazard","stakeholder"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")}},row),output);
+ [scan(vectors["scale_imbalanced"]).outerHTML,...matrix.map((record,index)=>exposure(index,true).toFixed(1)),0].reduce((row,field,index)=>scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(3):field:field,"style":matrix.length<index||!index?undefined:"color:"+(["provider","hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")}},row),input);
+[scan({svg:{...vectors["scale_imbalanced"].svg,"style":"transform:scaleX(-1)"}}).outerHTML
+,...matrix.map((record,index)=>imposure(index,true).toFixed(1))
+,0
+].reduce((row,field,index)=>scan({"td":{"#text":index?index>matrix.length?(sum(row)/matrix.length).toFixed(3):field:field,"style":matrix.length<index||!index?undefined:"color:"+(["hazard","stakeholder"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")}},row),output);
  let balance=table.appendChild(window.document.createElement("tr"));balance.setAttribute("id","balance");
- ["I/O",...matrix.map((record,index)=>(exposure(index,true)/imposure(index,true)).toFixed(1)),0].reduce((row,field,index)=>document.scan({"td":{"#text":index?index>matrix.length?(sum(row)/sum(row,true)).toFixed(2):field==Infinity?"∞":field>0?field:"-":field}},row),balance);
+["I/O"
+,...matrix.map((record,index)=>(exposure(index,true)/imposure(index,true)).toFixed(1))
+,0
+].reduce((row,field,index)=>
+ scan({"td":{"#text":index?index>matrix.length?(sum(row)/sum(row,true)).toFixed(2):field==Infinity?"∞":field>0?field:"-":field}},row),balance);
  let model=table.appendChild(window.document.createElement("tr"));model.setAttribute("id","model");
- [document.scan(vectors["active_directory"]).outerHTML,...matrix.map((record,index)=>[imposure(index,true),imposure(index,1/(exposure(index,true)))]),(12/(matrix.length**3-matrix.length))*matrix.reduce((hierarchy,record,index)=>hierarchy+(((imposure(index,true)-sum(output))/matrix.length)**2),0)].reduce((row,field,index)=>
-{if(index)peer.bar(field.map?field.map((outdegree,index,inference)=>outdegree==Infinity?inference[0]:outdegree):[],true).then(bar=>index>matrix.length?document.scan({"td":{"#text":(field*100).toFixed(2)+"%"}},row):document.scan({"td":{"#text":bar.outerHTML.replace(/\#2e7d32/g,["stakeholder","hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")+document.scan({"span":{"#text":(field[1]-field[0]).toFixed(1).toString().replace(/.*/,d=>["0.0","Infinity"].includes(d)?"":d[0][0]=="-"?d.substring(1):d),"style":"position:absolute;left:0;right:0;top:0;margin:auto;transform:translate(0,"+Math.max(...field)*45+"%);color:"+(field[1]-field[0]<0?["hazard"].includes(source[index-1].path.slice(-1)[0])?"#2e7d32":"#c62828":["hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")}}).outerHTML,"style":"position:relative;"}},row));
- return index?row:document.scan({"td":{"#text":field}},row)
+[scan(vectors["active_directory"]).outerHTML
+,...matrix.map((record,index)=>[imposure(index,true),imposure(index,1/(exposure(index,true)))])
+,(12/(matrix.length**3-matrix.length))*matrix.reduce((hierarchy,record,index)=>
+ hierarchy+(((imposure(index,true)-sum(output))/matrix.length)**2),0)
+].reduce((row,field,index)=>
+{if(index)peer.bar(field.map?field.map((outdegree,index,inference)=>outdegree==Infinity?inference[0]:outdegree):[],true).then(bar=>
+ index>matrix.length?scan({"td":{"#text":(field*100).toFixed(2)+"%"}},row):scan(
+ {"td":
+ {"#text":bar.outerHTML.replace(/\#2e7d32/g,["stakeholder","hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")+scan(
+ {"span":
+ {"#text":(field[1]-field[0]).toFixed(1).toString().replace(/.*/,d=>["0.0","Infinity"].includes(d)?"":d[0][0]=="-"?d.substring(1):d)
+ ,"style":"position:absolute;left:0;right:0;top:0;margin:auto;transform:translate(0,"+Math.max(...field)*45+"%);color:"+(field[1]-field[0]<0
+?["hazard"].includes(source[index-1].path.slice(-1)[0])?"#2e7d32":"#c62828"
+:["hazard"].includes(source[index-1].path.slice(-1)[0])?"#c62828":"#2e7d32")
+ }
+ }).outerHTML,"style":"position:relative;"
+ }
+ },row));
+ return index?row:scan({"td":{"#text":field}},row)
 },model);
- //[awesome["fas fa-cog"],...matrix.map((record,index)=>""/*(1-1/(1+Math.E**(exposure(index,true)*-1)))*/)].reduce((row,field,index)=>{index?bar(field,true).then(bar=>document.scan({"td":{"#text":bar.outerHTML.replace(/#2e7d32/g,["provider","hazard"].includes(Object.values(source)[index-1].path.slice(-1))?"#c62828":"#2e7d32")+document.scan({"span":{"#text":field.toFixed(1),"style":"position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;"}}).outerHTML,"style":"position:relative"}},row)):document.scan({"td":{"#text":field}},row);return row},table.appendChild(window.document.createElement("tr")));
+ //[awesome["fas fa-cog"],...matrix.map((record,index)=>""/*(1-1/(1+Math.E**(exposure(index,true)*-1)))*/)].reduce((row,field,index)=>{index?bar(field,true).then(bar=>scan({"td":{"#text":bar.outerHTML.replace(/#2e7d32/g,["provider","hazard"].includes(Object.values(source)[index-1].path.slice(-1))?"#c62828":"#2e7d32")+scan({"span":{"#text":field.toFixed(1),"style":"position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;"}}).outerHTML,"style":"position:relative"}},row)):scan({"td":{"#text":field}},row);return row},table.appendChild(window.document.createElement("tr")));
  return table.parentNode;
 }
 
@@ -146,8 +170,41 @@ export async function bar(source,negative)
  return svg.node();
 }
 
+export async function spreadsheet(sheet,{put})
+{var daynight=["#00838f","#ef6c00","#00838f"];
+ var spectrum=d3.scaleLinear().range(daynight).domain(Array.apply(null,Array(daynight.length--)).map((item,index)=>index/(daynight.length)).reverse());
+ var columns=["B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB"];
+ let {data:{values,range},config:{url}}=sheet;
+ let tr=values.map(function(row,line,lines)
+{let td=row.map(function(field,column,{length})
+{let checked={TRUE:true,FALSE:false};
+ let style=line&&["G","L","Q","V"].includes(columns[column])&&!isNaN(checked[row[column+1]])?"box-shadow:1px 0;":""
+ let disabled=!put;
+ if(checked[field]!==undefined)
+ return {input:{type:"checkbox",checked:checked[field],disabled,value:columns[column]+(line+1)},style}
+ let color=length-1!=column&&column?"background-color:"+spectrum(Number(field)/24):"";
+ return {"#text":field,style:style+"text-align:center;"+(lines.length-1!=line&&line?color:"")}
+});
+ return {td}
+});
+ tr.push({td:await Promise.all(values.pop().map(field=>bar(field).then(svg=>({svg}))))})
+ //tr.push({td:{"#text":"sign out",onclick:click=>gapi.auth2.getAuthInstance().signOut()}})
+ let table=scan({div:{style:"max-width:100%;overflow:scroll;padding-bottom:"+values.reduce((count,row)=>row.some(value=>["TRUE","FALSE"].includes(value))?count+1:count,0)*10+"px",table:{style:"margin:auto",tbody:{tr}}}});
+ let spreadsheetId=url.match(/sheets\/([^\/]+)\/values/)[1];
+ let edit=async({target})=>note(await fetch("google/sheets"
+,{method:"put",headers:{"Content-Type":"application/json"},body:JSON.stringify(
+ {spreadsheetId,range:range.split("!").reduce(page=>page+"!"+target.value)
+ ,resource:{values:[[target.checked]]}
+ ,valueInputOption:"RAW"
+ })
+ }));
+ Array.from(table.querySelectorAll("input")).forEach(input=>input.onchange=edit);
+ return table;
+}
+
 export async function cumulation(source)
-{console.log(source);let subjects=Array.from(Object.values(source).reduce((subjects,{occurrence})=>Array.from(occurrence).reduce((s,o)=>s.add(o),subjects),new Set())).map(subject=>({name:subject}));
+{console.log(source);
+ let subjects=Array.from(Object.values(source).reduce((subjects,{occurrence})=>Array.from(occurrence).reduce((s,o)=>s.add(o),subjects),new Set())).map(subject=>({name:subject}));
  subjects=subjects.reduce((subjects,subject)=>[...subjects,{...subject,concepts:Object.values(source).filter(({occurrence})=>Array.from(occurrence).includes(subject.name))}],[]);
  subjects=subjects.reduce((subjects,subject,index)=>[...subjects,{...subject,new:subject.concepts.filter(concept=>!subjects.slice(0,index).reduce((concepts,subject)=>[concepts,...subject.concepts].reduce((concepts,concept)=>concepts.add(concept.name)),new Set()).has(concept.name))}],[]);
  subjects.unshift({name:0,concepts:[],new:[]});
@@ -182,122 +239,61 @@ export async function cumulation(source)
  return svg.node().parentNode;
 }
 
-export async function spreadsheet(sheet,{put})
-{var daynight=["#00838f","#ef6c00","#00838f"];
- var spectrum=d3.scaleLinear().range(daynight).domain(Array.apply(null,Array(daynight.length--)).map((item,index)=>index/(daynight.length)).reverse());
- var columns=["B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","X","Y","Z","AA"];
- let {data:{values,range},config:{url}}=sheet;
- let tr=values.map(function(row,line,lines)
-{let td=row.map(function(field,column,{length})
-{let style=line&&["G","L","Q"].includes(columns[column])?"border-right:1px solid white;":""
- let checked={TRUE:true,FALSE:false}[field];
- let disabled=!put;
- if(checked!==undefined)
- return {input:{type:"checkbox",checked,disabled,value:columns[column]+(line+1)},style}
- let color=length-1!=column&&column?"background-color:"+spectrum(Number(field)/24):"";
- return {"#text":field,style:style+"text-align:center;"+(lines.length-1!=line&&line?color:"")}
-});
- return {td}
-});
- tr.push({td:await Promise.all(values.pop().map(field=>bar(field).then(svg=>({svg}))))})
- tr.push({td:{"#text":"sign out",onclick:click=>gapi.auth2.getAuthInstance().signOut()}})
- let table=document.scan({table:{style:"margin:auto",tbody:{tr}}});
- let spreadsheetId=url.match(/sheets\/([^\/]+)\/values/)[1];
- let edit=async({target})=>note(await fetch("google"
-,{method:"put",headers:{"Content-Type":"application/json"},body:JSON.stringify(
- {spreadsheetId,range:range.split("!").reduce(page=>page+"!"+target.value)
- ,resource:{values:[[target.checked]]}
- ,valueInputOption:"RAW"
- })
- }));
- Array.from(table.querySelectorAll("input")).forEach(input=>input.onchange=edit);
- return table;
+export async function calendar(source,{domain,range})
+{let values=Object.entries(source).reduce((values,[index,value])=>
+ Object.assign(values,
+[[value,...domain||[]].reduce((node,key)=>node&&node[key])
+,value
+].reduce((key,value)=>key&&{[isNaN(key)?Number(new Date(key)):key]:value})||
+ value),{});
+ range=Object.values(values).map(value=>
+ [value,...range||[]].reduce((node,key)=>node&&node[key])||
+ value);
+ domain=Object.keys(values).map(Number).sort((past,next)=>(past<next)-1);
+ let [min,max]=["min","max"].map(key=>Math[key](...domain));
+ let width=(max-min)/14000000;
+ let x=d3.scaleLinear().domain([min-(max-min)/5,max+(max-min)/5]).range([0,width]);
+ [min,max]=["min","max"].map(key=>Math[key](...range.filter(value=>!isNaN(value))));
+ let scale=5;
+ let y=d3.scaleLinear().domain([min,max]).range([max*scale,min*scale]);
+ //svg.append("g").attr("class","y axis").call(d3.axisLeft(y));
+ //svg.append("path").datum(keys).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none").attr("d"
+//,d3.line().x(x).y(node=>0).curve(d3.curveMonotoneX));
+ let svg=d3.create("svg").attr("width",width+60).attr("height",max*scale+30).style("overflow","visible");
+ let months=["January","February","March",,,,,,,,"November","December"];
+ Object.entries({month:"#c62828",now:"#0277BD"}).forEach(([id,value])=>
+ svg.append(node=>scan({defs:{linearGradient:{id,gradientTransform:"rotate(90)"
+,stop:
+[{offset:"0%","stop-color":value}
+,{offset:"50%","stop-color":"transparent"}
+,{offset:"100%","stop-color":value}
+]}}},null,svgns)));
+ let lines=svg.append("g").attr("transform","translate(37,5)");
+ //let axis=d3.axisBottom(x).ticks(0).tickSize(3).tickFormat(key=>clock(key,"date").slice(5,-2).replace(".","/"));
+ //axis=lines.append("g").attr("class","x axis").attr("transform","translate(0,"+max*scale+")").call(axis).attr("font-family","averia");
+ [Date.now(),...[11,12,1,2,3].map(month=>Number(new Date("20"+(month<8?21:20)+"-"+month+"-01")))].forEach((time,index,rulers)=>
+ lines.append(node=>scan({rect:{x:x(time),height:max*scale,width:1,fill:"url(#"+(index?"month":"now")+")",opacity:"0.5",class:"ruler",title:{"#text":index?months[new Date(time).getMonth()]:("Today:\n"+clock(time,"datetime"))}}},null,svgns))&&index&&(index+1<rulers.length)&&
+ lines.append(node=>scan({text:{x:x(time)+65,y:max*scale,dy:"-0.5em","text-anchor":"middle",fill:index?"#c62828":"#0277BD","font-size":"0.7em",class:"ruler","#text":index?months[new Date(time).getMonth()]:clock(Date.now(),"date").slice(8,-2)}},null,svgns)));
+ let curve=lines.append("path").datum(domain.filter(key=>!isNaN(values[key]))).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none").attr("d"
+,d3.line().x(x).y(key=>y(values[key])).curve(d3.curveMonotoneX));
+ [curve.node(),0].reduce(function split(curve,length)
+{let vector=[length,length+10].map(length=>curve.getPointAtLength(length));
+ return [vector,...vector.reduce(({x},next)=>x!=next.x)?[curve,length+10].reduce(split):[]];
+}).map((split,index,{length})=>split.reduce((start,end)=>
+ curve.clone(1).attr("stroke",color.health((max*scale-start.y)/(max*scale))).attr("d","M"+start.x+","+start.y+"S"+start.x+","+start.y+" "+end.x+","+end.y)));
+ curve.remove();
+ let a=lines.selectAll(".a").data(domain).enter().append("g").attr("class","a").attr("fill","white");
+ a.append("title").text(key=>clock(key,"datetime").slice(0,-3)+"\n"+(values[key].description||""))
+ a.append(key=>scan(isNaN(values[key])
+?{g:{rect:[45,-45].map(rotate=>({width:2,height:8,transform:"translate("+[x(key),max*scale-4]+") rotate("+rotate+" 1 4)",fill:values[key].summary=="Core Team meeting"?"#0277BD":values[key]?"#6a1b9a":"#0277bd"}))}}
+:{circle:{r:5,cx:x(key),cy:y(values[key]),fill:color.health(1-y(values[key])/(max*scale))}},null,svgns));
+ a.append("text").attr("x",x).attr("y",key=>isNaN(values[key])?max*scale:y(values[key])).attr("text-anchor","middle").style("font-family","inherit").style("font-size","7px").attr("fill",key=>
+ isNaN(values[key])?values[key].summary=="Core Team meeting"?"#0277BD":values[key]?"#6a1b9a":"#0277bd":"white").attr("dy",key=>
+ isNaN(values[key])?values[key].summary=="Core Team meeting"?22:15:"0.3em").text(key=>
+ isNaN(values[key])?values[key].summary||"":Math.floor(values[key]));
+ return svg.node();
 }
 
-export async function dashboard(backlog)
-{let room="SEI_2020_course_development.json"
- let states=["new","pending","done"];
- let members=["","Ray","Patrick","Anthony","Robert","Lax","Rom","Nathan","Dali","Reid"];
- let put=body=>Object.entries({join:room,put:{room,body}}).forEach(entry=>window.subject.room.emit(...entry));
- let style="text-align:center;background-color:var(--isle);border-radius:10px;cursor:pointer;max-width:"+100/states.length+"vw;padding:10px;";
-  let tr=["th","td"].map((row,td)=>({[row]:states.map(id=>td?{id}:{"#text":id})}));
- Object.assign(tr[1].td[0],{div:{id:"plus",style,class:"card",svg:{...vectors.plus.svg,width:"3em"}}});
- let table=document.scan({table:{id:"dashboard",style:"margin:auto",tr}});
- table.querySelector("#plus").onclick=call=>put(records.data().concat({status:states[0],post:Date.now()}).map((record,index)=>
- Object.assign(record,{index})))
- let index=({index})=>index;
- let records=d3.select(table).selectAll("div.record").data(backlog,index).enter();
- let select=([name,options,selected])=>({name,class:name,option:options.map(option=>({"#text":option,selected:option==selected}))});
- let [pencil,check]=["fas fa-pencil-alt","fas fa-check"].map(name=>awesome[name].replace(/^<svg /,'<svg height="1em" class="pencil" fill="var(--text)" '));
- let edit=function({type})
-{let select=type=="change";
- if(!this.classList.contains("trash")&&!select)
-{let editing=this.getAttribute("contenteditable")=="true"
-?this.removeAttribute("contenteditable")
-:!this.setAttribute("contenteditable",true);
- this.replaceChild(document.scan(editing?check:pencil),this.querySelector(".pencil"));
- if(editing)
- return [window.getSelection(),"removeAllRanges","addRange"].reduce((focus,method,index)=>
- !focus[method](index==2&&[window.document.createRange(),"Start","End"].reduce((range,side,index)=>
- !range["set"+side](this.querySelector("span").firstChild,[0,this.textContent.length][index-1])&&range))&&focus);
-}let card=d3.select(this.closest("div"));
- let datum=card.datum();
- let deleting=this.classList[0]=="trash";
- if(!deleting)
- card.datum(Object.assign(datum,{[this.classList[0]]:select?this.value:this.textContent||undefined,put:Date.now()}));
- let body=records.data();
- if(deleting)
- if(confirm("Delete "+datum.name+"?"))
- body=note(body,datum).filter(record=>record!=datum);
- else return;
- put(body);
-};
- let enter=({status,name,responsible,description,post})=>
-{let card=document.scan(
- {div:
- {style,class:"record card"
- ,p:{class:"name",span:{"#text":name||"-"},"#text":pencil}
- ,span:
-[{class:"description",span:{"#text":description||"-"},"#text":pencil}
-,{class:"post",span:{"#text":""}}
-],select:[["status",states,status],["responsible",members,responsible]].map(select)
- ,"#text":awesome["fas fa-trash"].replace(/^<svg /,"<svg class='trash' width='1em' ")
- }
- });
- Object.keys({status,name,responsible,description}).concat("trash").map(key=>
- Array.from(card.querySelectorAll("."+key))).flat().forEach(function(part)
-{let select=part.nodeName.toLowerCase()=="select";
- d3.select(part).on(select?"change":"click",edit).on("keydown",select||function(event)
-{if(event.keyCode!=13)return;
- event.preventDefault();
- this.click();
-})
-});
- return card;
-};
- let update=function(record)
-{let group=table.querySelector("#"+record.status)||table.querySelector("#"+states[0]);
- group.appendChild(this);
- Object.entries(record).forEach(([key,value])=>
-{if(["put","post"].includes(key))
- value=!value?"":clock(new Date(value),"date").substring(0,19);
- else value=value||"-"
- let part=this.querySelector("."+key);
- if(!part)return;
- if(part.nodeName.toLowerCase()=="select")
- return part.value=value;
- part.querySelector("span").textContent=value;
-})
- return this;
-};
- window.subject.room.on("put",function({body})
-{window.Tone.Transport.start();
- records=records.data(note(body),index).join(
- selection=>selection.select(enter).each(update)
-,selection=>selection
-,selection=>selection.remove()).each(update);
-});
- window.subject.room.emit("join",room);
- records=records.select(enter).each(update);
- return table;
+export async function gantt(source,{domain,range})
+{
 }

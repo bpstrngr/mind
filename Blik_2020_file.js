@@ -22,14 +22,17 @@ export function output(module,debug)
 };
 };
 
-var exclusions=import(npm.parameters).then(parameters=>
-exclusions=
-[npm.parameters,...Object.values(parameters.default).map(mode=>mode.certification).flat().filter(Boolean)
-,"*.cjs","*.kml","*.pem"
-,"*.doc",".gdoc","*.gslides","*.pdf"
+var exclusions=
+["*.cjs","*.kml","*.pem"
+,"*.doc",".gdoc","*.gslides"
 ,".gitignore","*certificate*.json","token.json"
 ,".git","codemirror_2019","icon","data","data2","node_modules"
-])
+];
+
+export function exclusion(file)
+{for(file of Array.isArray(file)?file:[file])
+ exclusions.push(path.resolve(file));
+}
 
 var exclude=(name,exclusions)=>
  exclusions instanceof Promise||
@@ -38,30 +41,34 @@ var exclude=(name,exclusions)=>
 :name.match("^"+exclusion.replace(/\./g,"\\.").replace("*",".*")+"$"));
 
 export default
-{get:async function(input,mode)
-{mode=input.mode&&input.query.mode||mode;
- input=input.url?input.url:input;
- if(input.slice(0,4)=="http")
- return request(input);
- input=(Array.isArray(input)?input:input.split("/")).filter(Boolean).filter(step=>step!=".")
- let functions=!input.length?await module("./Blik_2020_root.js"):null;
- let files=await new Promise(seek=>seek(path.resolve("."))).then(async function seek(url)
-{let next=input.shift()||"";
- let match=await details(path.resolve(url,next)).then(entry=>entry&&entry.isFile());
- if(!exclude(next,exclusions)&&match)
- return await read(path.resolve(url,next),mode)
+{get:async function(request,mode)
+{mode=request.mode&&request.query.mode||mode;
+ request=request.url?request.url:request;
+ if(request[0]&&request[0].slice(0,4)=="http")
+ return fetch(request);
+ request=(Array.isArray(request)?request:request.split("/")).filter(Boolean).filter(step=>step!=".")
+ let functions=!request.length?await module("./Blik_2020_root.js"):null;
+ let files=await new Promise(seek=>
+ seek(path.resolve("."))).then(async function seek(url)
+{let next=request.shift()||"";
+ let step=path.resolve(url,next);
+ let match=await details(step).then(entry=>entry&&entry.isFile());
+ if(match)
+ return exclude(step,exclusions)?Error("restricted"):await read(step,mode)
  let entries=await fs.readdir(url,{withFileTypes:true});
- entries=entries.filter(({name})=>
-!exclude(name,exclusions)&&
+ entries=entries.filter(({name})=>!exclude(name,exclusions)&&
  name.match(new RegExp(next)));
- entries=await Promise.all(entries.map(file=>
- file.isDirectory()
-?seek(path.resolve(url,file.name)).then(children=>(
- {[file.name]:children}))
-:{[file.name]:"file"}));
+ entries=await Promise.all(entries.map(entry=>
+ entry.isDirectory()
+?seek(path.resolve(url,entry.name)).then(entries=>
+ typeof entries=="string"
+?entries
+:{[entry.name]:entries})
+:{[entry.name]:"file"}));
  if(!entries.length)
- return undefined
+ return undefined;
  return entries.reduce((entries,entry)=>
+ [entries,entry].find(piece=>typeof piece=="string")||
  Object.assign(entries,entry));
 });
  return !files?functions:Object.assign(files,functions);
@@ -96,17 +103,16 @@ export default
 export async function read(file,mode)
 {return (file.startsWith("http")?request(file)
 :fs.readFile(file)).then(file=>
-{if(file instanceof Error)
- throw(file);
- if(mode=="binary")
- return file;
+{if(file instanceof Error)throw(file);
+ if(mode=="binary")return file;
  file=Buffer.from(file,'base64').toString('utf8');
- try{file=JSON.parse(file);}catch(error){}
- return file;//string response
-})
+ if(mode=="object")try{return JSON.parse(file);}
+ catch(error){return error}
+ return file;
+}).catch(fail=>fail)
 }
 
-function request(file)
+function fetch(file)
 {return new Promise(resolve=>
  import(file.substring(0,file.indexOf(":"))).then(module=>
  module.request({method:"GET",...url.parse(file)},response=>
@@ -172,7 +178,7 @@ export async function modules(module)
 
 async function save(descriptor,content,append,url)
 {let change=append?fs.appendFile:fs.writeFile;
- let fail=await change(descriptor,content,'utf-8').catch(fail=>fail);
+ let fail=await change(descriptor,typeof content=="object"?format(content):content,'utf-8').catch(fail=>fail);
  descriptor.close();
  return fail||url;
 }
@@ -182,3 +188,7 @@ function compose(...operations){return operations.reduce((composition,operation)
 var debug=import("util").then(util=>util.debuglog(import.meta.url.substring(import.meta.url.lastIndexOf("_")+1,import.meta.url.lastIndexOf("."))));
 
 var note=output(import.meta.url);
+
+export function format(json)
+{return JSON.stringify(json).replace(/:{|},|}}|}]/g,match=>match[0]+"\n "+match.substring(1))
+}

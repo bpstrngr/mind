@@ -18,13 +18,12 @@ function compose(...operations){return operations.reduce((composition,operation)
 export async function open(route,parameters,protocol="http")
 {if(!route)
  throw Error("no route module specified");
- if(!parameters)
- throw Error("no parameter object specified");
- parameters=import(parameters).then(parameters=>parameters.default);
+ //if(!parameters)throw Error("no parameter object specified");
+ if(parameters)
+ ({default:parameters}=await import(parameters));
  exclusion(
-[arguments[1],...Object.values(parameters).map(host=>
-!host.certification?[]
-:Object.values(host.certification).flat()).flat().filter(
+[arguments[1],...Object.values(parameters||{}).map(host=>
+ Object.values(host.certification||{}).flat()).flat().filter(
  Boolean).map(certification=>path.resolve(certification))
 ]);
  let keys=await [parameters,protocol].reduce(async(module,key,index,trace)=>

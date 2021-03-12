@@ -1,7 +1,24 @@
 export var svgns="http://www.w3.org/2000/svg";
 import clock from "./Blik_2020_time.js";
 
-export var acquire=path=>import(process.execPath.replace("bin/node","lib/node_modules/")+path).catch(note);
+export var absolve=path=>
+process.execPath.replace("bin/node","lib/node_modules/")+path;
+
+export var acquire=path=>
+import(absolve(path)).catch(note);
+
+export var require=async path=>(require.instance||
+await import("module").then(({createRequire})=>
+require.instance=createRequire(import.meta.url)))
+(absolve(path));
+
+export var collect=(values,...names)=>
+ names.reduce(async (values,argument,index)=>
+ (values=await values)[index]
+?values
+:new Promise(proceed=>import("readline").then(({createInterface})=>
+ createInterface({input:process.stdin,output:process.stdout}).question(argument+":",value=>proceed(value))))
+,values);
 
 export var {window,fetch}=globalThis.window?globalThis
 :{window:url=>acquire("jsdom/lib/api.js").then(module=>({window}=new module.default.JSDOM("",{url})))

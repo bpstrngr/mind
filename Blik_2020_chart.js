@@ -183,7 +183,7 @@ export async function spreadsheet(sheet,{put})
  if(checked[field]!==undefined)
  return {input:{type:"checkbox",checked:checked[field],disabled,value:columns[column]+(line+1)},style}
  let color=length-1!=column&&column?"background-color:"+spectrum(Number(field)/24):"";
- return {"#text":field,style:style+"text-align:center;"+(lines.length-1!=line&&line?color:"")}
+ return {"#text":field,style:style+"text-align:center;white-space:nowrap;"+(lines.length-1!=line&&line?color:"")}
 });
  return {td}
 });
@@ -261,36 +261,39 @@ export async function calendar(source,{domain,range})
 //,d3.line().x(x).y(node=>0).curve(d3.curveMonotoneX));
  let svg=d3.create("svg").attr("width",width+60).attr("height",max*scale+30).style("overflow","visible");
  let months=["January","February","March",,,,,,,,"November","December"];
- Object.entries({month:"#c62828",now:"#0277BD"}).forEach(([id,value])=>
+ Object.entries({month:"#c62828",now:"#616161"}).forEach(([id,value])=>
  svg.append(node=>scan({defs:{linearGradient:{id,gradientTransform:"rotate(90)"
 ,stop:
 [{offset:"0%","stop-color":value}
-,{offset:"50%","stop-color":"transparent"}
+,{offset:"50%","stop-color":value}
 ,{offset:"100%","stop-color":value}
 ]}}},null,svgns)));
  let lines=svg.append("g").attr("transform","translate(37,5)");
  //let axis=d3.axisBottom(x).ticks(0).tickSize(3).tickFormat(key=>clock(key,"date").slice(5,-2).replace(".","/"));
  //axis=lines.append("g").attr("class","x axis").attr("transform","translate(0,"+max*scale+")").call(axis).attr("font-family","averia");
- [Date.now(),...[11,12,1,2,3].map(month=>Number(new Date("20"+(month<8?21:20)+"-"+month+"-01")))].forEach((time,index,rulers)=>
- lines.append(node=>scan({rect:{x:x(time),height:max*scale,width:1,fill:"url(#"+(index?"month":"now")+")",opacity:"0.5",class:"ruler",title:{"#text":index?months[new Date(time).getMonth()]:("Today:\n"+clock(time,"datetime"))}}},null,svgns))&&index&&(index+1<rulers.length)&&
- lines.append(node=>scan({text:{x:x(time)+65,y:max*scale,dy:"-0.5em","text-anchor":"middle",fill:index?"#c62828":"#0277BD","font-size":"0.7em",class:"ruler","#text":index?months[new Date(time).getMonth()]:clock(Date.now(),"date").slice(8,-2)}},null,svgns)));
  let curve=lines.append("path").datum(domain.filter(key=>!isNaN(values[key]))).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none").attr("d"
-,d3.line().x(x).y(key=>y(values[key])).curve(d3.curveMonotoneX));
+,d3.line().x(x).y(key=>y(values[key])));//.curve(d3.curveMonotoneX));
  [curve.node(),0].reduce(function split(curve,length)
 {let vector=[length,length+10].map(length=>curve.getPointAtLength(length));
  return [vector,...vector.reduce(({x},next)=>x!=next.x)?[curve,length+10].reduce(split):[]];
 }).map((split,index,{length})=>split.reduce((start,end)=>
- curve.clone(1).attr("stroke",color.health((max*scale-start.y)/(max*scale))).attr("d","M"+start.x+","+start.y+"S"+start.x+","+start.y+" "+end.x+","+end.y)));
+ curve.clone(1).attr("opacity",0.5).attr("stroke",null).attr("fill",color.health((max*scale-start.y)/(35*scale))).attr("d","M"+start.x+","+start.y+"S"+start.x+","+start.y+" "+end.x+","+end.y+" L"+[end.x,max*scale]+" L"+[start.x,max*scale])));
  curve.remove();
+ [Date.now(),...[11,12,1,2,3].map(month=>Number(new Date("20"+(month<8?21:20)+"-"+month+"-01")))].forEach((time,index,rulers)=>
+ lines.append(node=>scan({rect:{x:x(time),height:max*scale,width:1,fill:"url(#"+(index?"month":"now")+")",opacity:"0.5",class:"ruler",title:{"#text":index?months[new Date(time).getMonth()]:("Today:\n"+clock(time,"datetime"))}}},null,svgns))&&index&&(index+1<rulers.length)&&
+ lines.append(node=>scan({text:{x:x(time)+65,y:max*scale,dy:"-0.5em","text-anchor":"middle",fill:index?"#c62828":"#0277BD","font-size":"0.7em",class:"ruler","#text":index?months[new Date(time).getMonth()]:clock(Date.now(),"date").slice(8,-2)}},null,svgns)));
  let a=lines.selectAll(".a").data(domain).enter().append("g").attr("class","a").attr("fill","white");
  a.append("title").text(key=>clock(key,"datetime").slice(0,-3)+"\n"+(values[key].description||""))
  a.append(key=>scan(isNaN(values[key])
-?{g:{rect:[45,-45].map(rotate=>({width:2,height:8,transform:"translate("+[x(key),max*scale-4]+") rotate("+rotate+" 1 4)",fill:values[key].summary=="Core Team meeting"?"#0277BD":values[key]?"#6a1b9a":"#0277bd"}))}}
-:{circle:{r:5,cx:x(key),cy:y(values[key]),fill:color.health(1-y(values[key])/(max*scale))}},null,svgns));
- a.append("text").attr("x",x).attr("y",key=>isNaN(values[key])?max*scale:y(values[key])).attr("text-anchor","middle").style("font-family","inherit").style("font-size","7px").attr("fill",key=>
- isNaN(values[key])?values[key].summary=="Core Team meeting"?"#0277BD":values[key]?"#6a1b9a":"#0277bd":"white").attr("dy",key=>
- isNaN(values[key])?values[key].summary=="Core Team meeting"?22:15:"0.3em").text(key=>
- isNaN(values[key])?values[key].summary||"":Math.floor(values[key]));
+?{g:{rect:[45].map(rotate=>({width:1,height:values[key].summary=="Core Team meeting"?4:14,transform:"translate("+[x(key),max*scale/*-4*/]+")"//" rotate("+rotate+" 1 4)"
+ ,fill:values[key]?"#616161":"#0277bd"}))}}//values[key].summary=="Core Team meeting"?"#d7ccc8":
+:{text:{}},null,svgns));
+ a.append("text").attr("x",x).attr("y",key=>isNaN(values[key])?max*scale:y(values[key])).attr("text-anchor","middle").style("font-size",key=>
+ isNaN(values[key])?values[key].summary=="Core Team meeting"?7:6:7+"px").style("font-family",key=>
+ isNaN(values[key])?"oswald":"averia").attr("fill",key=>
+ isNaN(values[key])?"#616161":color.health(values[key]/35)).attr("dy",key=>//values[key].summary=="Core Team meeting"?"#d7ccc8":
+ isNaN(values[key])?values[key].summary=="Core Team meeting"?12:22:"-0.5em").text(key=>
+ isNaN(values[key])?values[key].summary||"":[Math.floor(values[key]),"%"].reduce((value,postfix)=>value?value+postfix:""));
  return svg.node();
 }
 

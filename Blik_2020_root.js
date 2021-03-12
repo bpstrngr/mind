@@ -17,7 +17,7 @@ export var hash=function(value)
 }
 
 export default
- {...file,vanilla,host,style,vector,rss,google,mongo
+ {...file,vanilla,host,style,vector,rss,google,mongo,invoice
  ,signature:{...store("Blik_2020_signature.json","author")}
  ,mind:{...store("Blik_2020_mind.json","code",hash)}
  ,react:async function(input){return scan(hypertext("concept","vector/node",["./Blik_2020_react.js"],[await style()]))}
@@ -113,6 +113,17 @@ async function google(request)
 ?module.bind?module.bind(google):module
 :google)(body
 ,(...result)=>resolve(result))).then(resolve);
+}
+
+async function invoice(request)
+{request=
+ {BasicOnlineInvoiceRequestType:
+ {header:{BasicHeaderType:{requestId:["",/[+a-zA-Z0-9_]{1,30}/].reduce(String.prototype.match.call),timestamp:new Date(),requestVersion:"",headerVersion:undefined}} //"common.xsd"
+ ,user:{} //"common.xsd"
+ ,software:{} //"invoiceApi.xsd"
+ }
+ };
+ 
 }
 
 async function rss(input)
@@ -220,6 +231,7 @@ function style(input)
  {"@font-face":
 [{"font-family":"ranger",src:"url(Blik_2018_calligraphy.ttf)"}
 ,{"font-family":"averia",src:"url(Sayers_2011_averia.ttf)"}
+,{"font-family":"oswald",src:"url(Vernon_2011_Oswald-Regular.ttf)"}
 ],"@global":
  {"::-webkit-scrollbar":{display:"none"}
  ,"@keyframes fadeout":{"0%":{opacity:1,display:"block"},"50%":{opacity:1,display:"block"},"100%":{opacity:0,display:"none"}}

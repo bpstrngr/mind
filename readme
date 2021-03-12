@@ -1,16 +1,17 @@
 #!/bin/bash
-node --inspect --experimental-json-modules -e 'import("./Blik_2020_seed.js").then(seed=>seed.open("./Blik_2020_root.js","./Blik_2020_parameters.json","https"))';
+node --inspect=9291 --experimental-json-modules -e 'import("./Blik_2020_seed.js").then(seed=>seed.open("./Blik_2020_root.js","./Blik_2020_parameters.json","https"))';
 exit 0
 
 Execute this readme to seed... 
 Check to specify a route and a parameter module, 
-the latter containing external credentials for the 
-protocol you need (http/https) and further external 
-resources (approved protocol certification, oauth keys etc.). 
-Global acquisition and respective local bundling of dependencies, 
-as well as testing are all implied, forget nebulous build steps and syntaxtical pollutants (esoteric babel/webpack, jsx etc.). 
+the latter containing port, certification, authenticity, etc 
+credentials for the protocol you specify. 
 
-These dependencies are defined in a complacent 
+Acquisition (global) and bundling (local) of external dependencies, 
+as well as testing are all implied, so forget nebulous build steps and 
+skeuomorphic syntactical pollutions (babel, webpack, typescript, jsx etc.). 
+
+These dependencies are defined in a separate, complacent 
 "package.json" along with npm versioning. 
 That's as suckless@http://suckless.org/philosophy/ as I could get. 
 

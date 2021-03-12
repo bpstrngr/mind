@@ -255,7 +255,7 @@ function node(nodes)
  if(progress&&(Number(progress)==100))
  Promise.resolve(awesome).then(check=>mark.appendChild(scan(
  {g:
- {check:fragment(note(awesome["fas fa-check"])).firstChild.firstChild
+ {check:fragment(awesome["fas fa-check"]).firstChild.firstChild
  ,transform:"translate("+(x+width+(start?5:-5))+" -8) scale(0.025)",fill:"#81c784"
  }
  },null,svgns)));
@@ -397,12 +397,13 @@ function matrix(resource,scope)
  if(!matrix)
  values=Object.entries(resource).map(([key,value])=>
  [[key],value]).reduce(function array(matrix,[path,values])
-{let record=Object.values(values).map(value=>
+{let record=!values?[]:Object.values(values).map(value=>
  Object.entries(value).find(([,value])=>
  Array.isArray(value)));
  if(record.length)
  record=record.reduce((matrix,entry)=>
  matrix&&entry&&(entry[0]==matrix[0])&&matrix);
+ if(values)
  if(record)
  Object.entries(values).forEach(([name,record])=>typeof record=="object"&&
  Object.entries(record).forEach(([,field])=>Array.isArray(field)&&

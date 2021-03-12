@@ -10,23 +10,38 @@ export default async function(backlog)
  //Object.assign(data[title],{name:title})));
  //classic.style.marginTop="50px";
  backlog=conceive(backlog);
+ backlog=backlog.sort((past,next)=>[past,next].map(node=>Number(node.data[node.title].progress)).reduce((past,next)=>
+ [past,next].some(isNaN)?1:Number(past<next)-1));
  let matrix=await network(backlog,{spread:"left",still:true,cluster:true});
  let board=scan({div:
  {class:"board",div:
-[{div:{class:"chart"}}
-,{matrix,id:"matrix",title:"SEI_2020_course_development_matrix.json",style:"max-width:100vw;overflow:scroll;position:relative;"}
+ {matrix,id:"matrix",title:"SEI_2020_course_development_matrix.json",style:"max-width:100vw;overflow:scroll;position:relative;"
+ }
 //,{roles,id:"roles",style:"max-width:100vw;overflow:scroll;"}
-]}              });
+ }              });
  let progress="./SEI_2020_course_development_matrix_log.json";
  let meetings="google/calendar/k0344ccen5stls0gib4isugdlc@group.calendar.google.com/data/items?maxResults=10&timeMin=2020-11-01T00:00:00.000Z";
- let chart=await get({name:[progress,meetings],transform:"calendar","domain":["start","dateTime"]},board.querySelector("div.chart"),true);
- let heights=[board.querySelector("div#matrix>svg"),chart].map(part=>Number(part.getAttribute("height")));
- chart.setAttribute("style","overflow:visible;transform:translate(0,"+heights.reduce((matrix,chart)=>matrix+chart/2)+"px)");
- let ruler={height:heights[0],y:-heights[0]+heights[1]/2};
+ let [width,height]=["width","height"].map(dimension=>
+ Number(board.querySelector("div#matrix>svg").getAttribute(dimension)));
+ matrix=board.querySelector("svg");
+ matrix.prepend(window.document.createElementNS(svgns,"g"));
+ let chart=await get({name:[progress,meetings],transform:"calendar","domain":["start","dateTime"]},matrix.firstChild,true);
+ chart=matrix.firstChild;
+ let chartheight=Number(chart.getAttribute("height"))/2;
+ matrix.prepend(
+[window.document.createDocumentFragment()
+,...Array.from(chart.childNodes)
+].reduce((fragment,node)=>fragment.appendChild(node)&&fragment));
+ chart.remove();
+ chart=board.querySelector("g");
+ chart.setAttribute("style","overflow:visible;transform:translate(-"+width/3.423+"px,"+(height-chartheight)+"px)");
+ let ruler={height:height+15,y:-height+chartheight-15};
  Array.from(chart.querySelectorAll("rect.ruler")).forEach(rect=>
  Object.entries(ruler).forEach(entry=>rect.setAttribute(...entry)));
  Array.from(chart.querySelectorAll("text.ruler")).forEach(text=>
- text.parentNode.insertBefore(text.cloneNode(true),text).setAttribute("y",ruler.y+17))
+ text.parentNode.insertBefore(text.cloneNode(true),text).setAttribute("y",ruler.y+17)&&
+ text.remove());
+ matrix.setAttribute("height",Number(matrix.getAttribute("height"))+chartheight*2)
  //for(let child of Array.from(chart.childNodes))
 //{if(child.nodeName.toLowerCase()=="g")
 // chart.setAttribute("transform","translate("+[200,board.querySelector("svg").getAttribute("height")]+")");

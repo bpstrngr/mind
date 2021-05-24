@@ -1,26 +1,211 @@
-import clock from "./Blik_2020_time.js";
-import script from "./Blik_2020_script.js";
-import network from "./Blik_2020_network.js";
+import {note,path,window,fetch,resolve,retreat} from "./Blik_2020_platform.js";
+import {scan,vectors,awesome} from "./Blik_2020_document.js";
+import transform from "./Blik_2020_transform.js";
 import dashboard from "./Blik_2020_dashboard.js";
+import network from "./Blik_2020_network.js";
+import script from "./Blik_2020_script.js";
+import clock from "./Blik_2020_time.js";
 import * as chart from "./Blik_2020_chart.js";
 import * as map from "./Blik_2020_map.js";
-import {scan,note,vectors} from "./Blik_2020_document.js";
-import {window,retreat} from "./Blik_2020_window.js";
-import transform from "./Blik_2020_transform.js";
 
-export async function insert(source,target,sibling)
-{await Promise.resolve(wheel);
- if(!sibling)
- while(target.firstChild)
- target.firstChild.remove();
- source=source||[wheel.cloneNode(true),0].reduce(wheel=>
- ["width","height"].map(side=>wheel.setAttribute(side,"50px"))&&wheel);
- source=sibling
-?target.parentNode[target.nextSibling?"insertBefore":"appendChild"](source,target.nextSibling)
-:target.appendChild(source);
- if(sibling==2)target.remove();
+export default
+ {scan,script,media,feed,portfolio,network,dashboard,...chart,...map
+ ,xmas:async call=>import("./anvaka_2019_sinus_pine.js").then(({run})=>run())
+ }
+
+export async function perform(form)
+{let {target,...fields}=form;
+ let title=path(fields.source);
+ if(target&&(target.title==title))
+ if(fields.transform=="media")
+ return;
+ //else target=window.document.createRange().createContextualFragment(target.innerHTML);
+ let resource=await (fields.source
+?Array.isArray(fields.source)
+?Promise.all(fields.source.map(resolve)).then(resources=>resources.map(resource=>resource.default||resource).flat())
+:resolve(title).then(resource=>resource.default||resource)
+:"");
+ if(resource instanceof Error){resource=resource.toString();fields.transform="media";};
+ if(resource.pdf){resource=await pdf(resource);fields.transform="media";}
+ if(fields.transform=="network"&&(typeof resource!="object"))fields.transform="media";
+ if(fields.transform!="portfolio"&&this&&this.nodeName)
+ fields=Object.assign(reform.call(this,{get:analyse(resource,fields)},1),fields);
+ //new Array(file.numpages).reduce((canvas,phase,index)=>file.getPage(index+1).then(page=>{let view=page.getViewport({scale:1.5});canvas.width=canvas.width<view.width?view.width:canvas.width;canvas.height=(canvas.height||0)+view.height;page.render({canvasContext:canvas.getContext('2d'),viewport:view});return canvas;}),document.createElement('canvas')))
+ let values=this&&this.elements&&this.elements["name"]&&this.elements["name"].parentNode.querySelector("ul");
+ if(values)values.__data__=resource.descendants?resource.descendants():form.source;
+ let source=await transform[fields.transform||"media"](resource,{target,window,...fields});
+ source.title=title;
  return source;
 }
+
+export async function insert(place,source)
+{let click=this.onclick;
+ this.removeEventListener("click",click);
+ let {over,before,after,under}={[place]:true};
+ let resource=source&&!(source instanceof Promise)?source:
+[(await Promise.resolve(wheel)).cloneNode(true),"width","height"
+].reduce((wheel,side)=>!wheel.setAttribute(side,"50px")&&wheel);
+ if(under)
+ while(this.firstChild)
+ this.firstChild.remove();
+ if(under)this.appendChild(resource);
+ else this.parentNode[this.nextSibling?"insertBefore":"appendChild"](resource,this.nextSibling);
+ if(over)this.remove();
+ return  source instanceof Promise
+?source.then(source=>insert.call(resource,"over",source))
+:resource;
+}
+
+export var pdf=resource=>Promise.all(
+[import("./mozilla_2010_pdf_viewer_brightspace.js")
+,import("./mozilla_2010_pdf_link_service_brightspace.js")
+]).then(function([{PDFViewer},{PDFLinkService}])
+{let container=scan({"div":{"class":"pdfjs","div":{"id":"viewer"}}});
+ let viewer=new PDFViewer(
+ {linkService:new PDFLinkService(),container,renderer:"svg"
+ ,textLayerMode:0,disableRange:true,forceRendering:true
+ });
+ viewer.linkService.setViewer(viewer);
+ viewer.setDocument(resource);
+ return viewer.container;
+});
+
+export var activate=(fragment,module)=>
+import(module).then(({default:actions})=>
+Object.entries(fragment).forEach(([nodename,node])=>
+Object.keys(actions[nodename]).forEach(event=>
+node["on"+event]="dispatch.call(this,event)")));
+//"import('"+module+"').then(actions=>actions.default[this.nodeName.toLowerCase()][event.type].call(this,event));")));
+
+export function translate(source,tag,child,attributes={})
+{return source.map((value,index)=>typeof tag=="function"?tag(value):!value?{}:value[child]
+?{[value[tag]]:translate(value[child],tag,child)}
+:value[tag]
+||Object.fromEntries([...Object.entries(attributes).map(([key,attribute])=>
+ [key,typeof attribute=="function"?attribute(value=typeof value=="string"||Array.isArray(value)?value:Object.entries(value)[0]||""):attribute]) 
+,[child,{[tag]:typeof (value=Array.isArray(value)?value[1]:value)=="object"&&value
+?translate(value.length?value:Object.entries(value),tag,child,attributes)
+:undefined}]])).sort((past,next)=>(typeof next=="string")-1);
+}
+
+export function field(fields,labels={})
+{let group=Object.entries(fields).reduce((group,[key,value],index)=>
+ typeof value=="object"&&!value.length&&!--index&&key,false);
+ if(group)
+ fields=Object.values(fields)[0];
+ return {label:translate(Object.entries(fields),([id,value])=>
+{if(typeof value=="undefined")return;
+ let type=value.constructor==Date?"date":value instanceof Set?"radio":Array.isArray(value)?"select":typeof value=="boolean"?"checkbox":"text";
+ let input=
+[{type,for:id,title:id
+ ,onmousedown:action(()=>[this.form.elements[this.getAttribute("for")],this.ownerDocument.activeElement].reduce((input,focused)=>
+ event.target!=input&&(input==focused)&&setTimeout(()=>input.blur(),50)))
+ ,checked:{checkbox:value?value.toString():undefined}[type]
+ ,input:
+ {type:["select","date"].includes(type)?"text":type,id,name:id
+ ,value:type=="date"?clock(value,"datetime"):type=="text"&&value&&String(value)||undefined
+ ,checked:{checkbox:value?value.toString():undefined}[type]
+ ,autocomplete:"off"
+ }
+ ,ul:type=="date"?clockwork(value):type!="select"?undefined:
+ {li:!value.length?undefined:translate(value,"li","ul",
+ {"#text":item=>(typeof item=="string"?[item,0]:Array.isArray(item)?item:Object.entries(item)).reduce((key,value)=>
+  key+(typeof value=="object"?awesome["fas fa-book-medical"]:awesome["fas fa-align-left"]).replace("<svg ","<svg width='10px' "))
+ })
+ ,onclick:action(select)
+ }
+ ,...label(labels,typeof labels[id]=="function"?labels[id](value):id)
+ }
+,type=="radio"
+].reduce((input,radio)=>!radio
+?input
+:Array.from(value).map(value=>
+ merge(JSON.parse(JSON.stringify(input))
+,{for:value,title:value,class:group
+ ,input:{id:value,value}
+ ,...label(labels,typeof labels[id]=="function"?labels[id](value):value)
+ })));
+ return input;
+}).flat()}
+}
+
+export function conform(fields,inputs)
+{let entries=(Array.isArray(fields)?fields:Object.entries(fields));
+ entries=entries.map(([key,value])=>
+[key,value instanceof (inputs[key]||String)
+?value
+:inputs[key]==Boolean
+?["true","on"].includes(value)
+:(inputs[key]||String)(value)
+]);
+ return Object.fromEntries(entries);
+}
+
+export function reform(fields,reset)
+{//if(form instanceof window.Event)
+ //form=form.currentTarget;
+ let group=Object.entries({...note(fields)}).reduce((group,[key,value],index)=>
+ typeof value=="object"&&!value.length&&!index&&key,false);
+ if(group)
+ fields=Object.values(fields)[0];
+ if(!this)
+ return fields;
+ if(fields)
+ Object.entries(fields).map(([key,value])=>
+{let input=this.elements[key];
+ if(value===undefined)
+ return input&&input.closest("label").remove();
+ let valid=!this.elements[key]||(value instanceof this.elements[key].constructor);
+ if(!valid)
+ if(input)
+ return [input.closest("label"),input].map((field,input)=>
+ input?field.value=value:field.classList.add(...group?[group]:field.classList));
+ else
+ value=value instanceof String?value:(this.elements[key]==Boolean)
+?["true","on",true].includes(value)
+:(this.elements[key]==Date)
+?clock(value,"datetime")
+:new (this.inputs[key]||String)(value);
+ let label=field({[key]:value},this.labels).label[0];
+ label.class=group;
+ label.input.value=Array.isArray(fields[key])
+?fields[key].includes(label.input.value)?label.input.value:fields[key][0]
+:[input&&input.value,fields[key],label.input.value].find(value=>typeof value=="string");
+ return this[input?"replaceChild":"appendChild"](scan({label}),input&&input.parentNode)
+})
+ Array.from(this.elements).forEach((input,index,inputs)=>
+{if(input.id=="name")
+ if(Array.from(this.childNodes).includes(inputs[0].closest("label")))
+ this.insertBefore(input.closest("label"),inputs[0].closest("label"));
+ if(input.type=="text")
+ input.dispatchEvent(new window.Event("change",{bubbles:true}))
+ if(!reset)
+ return;
+ if(fields[input.id]===undefined)
+ input.closest("label").remove();
+})
+ return Object.fromEntries([...new window.FormData(this)]);
+}
+
+function select(event)
+{let input=event.target.closest("label").querySelector("input");
+ input.value=["",event.target.closest("li")].reduce(function prepend(path,item)
+{path=item.childNodes[0].nodeValue+(path?"/"+path:"");
+ item=item.parentNode.parentNode;
+ return item.nodeName=="LI"?prepend(path,item):path
+});
+ input.dispatchEvent(new Event("input",{bubbles:true}));
+ input.form.dispatchEvent(new Event("submit"));
+};
+
+let label=(labels,id)=>typeof id!="string"
+?id
+:typeof labels[id]=="object"
+?labels[id]
+:(labels[id]&&labels[id][0]=="<")
+?{"#text":labels[id]}
+:{span:{"#text":typeof labels[id]=="string"?labels[id]:id}};
+
 
 export async function feed(source,{number,fragment})
 {//scan(Array.isArray(resource)?translate(resource,"div",item=>({"#text":item.name})):resource,frame).childNodes[0];
@@ -84,39 +269,33 @@ export async function deform(resource)
  let text=new RegExp(/[A-Za-zÁÉÍÓÖŐÚŰÜáéíóöőúűü\d\:\.\;\/\?\=\&\-\'_#\%\!\@]/);
  let json=new RegExp(/[{\[]{1}(?:[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}/,"m");
  let call=new RegExp("\\((?:(\""+text.source+"*\"|"+json.source+")[,\)]{0,1})+");
- let tags={"@":"name","#":"document","{":"style"};
+ let tags={"@":"source","#":"document","{":"style"};
  let tag=new RegExp("(["+Object.keys(tags).join("")+"])("+json.source+"|"+text.source+"+("+call.source+")*)[\}]*","g");
  let form=new RegExp("(?<=^|[ \n])("+text.source+"+?[^\(\)\"\':, \n"+Object.keys(tags).join("")+"])((?:"+tag.source+")+)","gm");
  let promises=await Promise.all([...resource.matchAll(form)].map(([match,title,input])=>
-{let {name,document,style}=Object.fromEntries([...input.matchAll(tag)].map(([match,tag,value])=>[tags[tag],value]).reverse());
- [document,name,input]=!document||!document.includes("(")
-?[document,name||title,input]
+{let {source,document,style}=Object.fromEntries([...input.matchAll(tag)].map(([match,tag,value])=>[tags[tag],value]).reverse());
+ [document,source,input]=!document||!document.includes("(")
+?[document,source||title,input]
 :[...document.matchAll(json.source+"|"+text.source+"+")].map(([match])=>match.replace("(",""));
- if(name)
- try{name=JSON.parse(name)}catch(fail){name=name.split(",").reduce((json,piece)=>
+ if(source)
+ try{source=JSON.parse(source)}catch(fail){source=source.split(",").reduce((json,piece)=>
  //split consecutive jsons matched by the json regexp
 {if(typeof json!="string"){input=(input?input+",":"")+piece;return json;}
  json=json+","+piece;
  try{return JSON.parse(json)}catch(fail){return json};
 })}
  try{input=JSON.parse(input)}catch(fail){}
- name=transform[document]
+ source=transform[document]
 ?transform[document].constructor==Function
-?transform[document](name,input||{})
-:defer({name,transform:document,...input||{}})
-:refer(title,name,document||(name==title&&"span"))||match;
- if(name.setAttribute)
- name.setAttribute("style",style);
- return name;
+?transform[document](source,input||{})
+:defer({source,transform:document,...input||{}})
+:refer(title,source,document||(source==title&&"span"))||match;
+ if(source.setAttribute)
+ source.setAttribute("style",style);
+ return source;
 }));
  return resource.replace(form,match=>(promises.shift()||{outerHTML:""}).outerHTML);
 }
-
-
-export default
- {scan,script,media,feed,portfolio,network,dashboard,...chart,...map
- ,xmas:async call=>import("./anvaka_2019_sinus_pine.js").then(({run})=>run())
- }
 
 function portfolio(source)
 {return scan(
@@ -128,7 +307,7 @@ function portfolio(source)
  }
  ,h2:["pub","sub"].map(key=>(
  {"#text":key
- ,onclick:"import('/Blik_2020_form.js').then(({perform,insert})=>insert(null,this,true).then(fragment=>perform({resource:window.location.pathname+'"+key+"',transform:'feed',number:15,fragment})))"
+ ,onclick:"import('/Blik_2020_transform.js').then(({perform,insert})=>insert(null,this,true).then(fragment=>perform({resource:window.location.pathname+'"+key+"',transform:'feed',number:15,fragment})))"
  }))
  }
  })
@@ -144,14 +323,15 @@ function media(resource,properties)
 
 var defer=form=>scan(
  {"img":
- {onload:"import('./Blik_2020_form.js').then(({get})=>get("+JSON.stringify(form)+",this,true));"
+ {onload:"!function expect(){setTimeout(tick=>(typeof dispatch=='undefined'?expect:dispatch).call(this,event),500)}.call(this)"
  ,src:"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+ ,"data-subject":JSON.stringify(form)
  }
  })
-var refer=(title,name,transform,elements={"audio":["mp3"],"img":["png","jpg","svg","gif"]})=>scan(
-{[transform||Object.keys(elements).find(key=>elements[key].includes(name&&name.slice&&name.slice(-3)))||"a"]:
-{"#text":(title||name).replace(/_/g," "),title,name:title||name,alt:title||name,href:name,src:name,controls:"on",onclick:!name?undefined
-:"this.name=='"+title+"'?insert(document.createTextNode(this.name.replace(/_/g,' ')),this).parentNode.removeAttribute('name'):resolve('"+title+"').then(name=>insert(name,this)).then(node=>note(node.parentNode).name='"+title+"')"
+var refer=(title,source,transform,elements={"audio":["mp3"],"img":["png","jpg","svg","gif"]})=>scan(
+{[transform||Object.keys(elements).find(key=>elements[key].includes(source&&source.slice&&source.slice(-3)))||"a"]:
+{"#text":(title||source).replace(/_/g," "),title,source:title||source,alt:title||source,href:source,src:source,controls:"on",onclick:!source?undefined
+:"this.source=='"+title+"'?insert(document.createTextNode(this.source.replace(/_/g,' ')),this).parentNode.removeAttribute('source'):resolve('"+title+"').then(source=>insert(source,this)).then(node=>note(node.parentNode).source='"+title+"')"
 }
 });
 
@@ -165,7 +345,7 @@ var wheel=new Promise(async function wait(resolve){vectors===undefined?setTimeou
 export function promptpost(item)
 {//gum_bubble_pop.play();
  //block=block.parentNode.insertBefore(document.createElement("span"),block.nextSibling);block.style.display="block";
- let entry=scan({span:{name:item.id,class:"entry",platform:item.platform,"#text":"\n"}})
+ let entry=scan({span:{source:item.id,class:"entry",platform:item.platform,"#text":"\n"}})
  entry.onclick=load;
  //if(item.onclick){entry.name=item.name;entry.onclick=item.onclick; block=block.parentNode.insertBefore(entry,block.nextSibling);return block}
  //timestamp=entry.appendChild(document.createElement("span"));timestamp.setAttribute("style","color:#b71c1c;");timestamp.innerHTML=item.createdTime+item.name.substring(5,9)+"."+item.name.substring(9,11)+"."+item.name.substring(11,13)+". ";
@@ -311,3 +491,23 @@ async function read(title)
 }
 
 var spelling=0,skip=0;
+
+function analyse(resource,preset)
+{return typeof resource=="string"||resource instanceof String
+?{source:preset.source,transform:["media","script"]}
+:{source:Array.isArray(resource)?resource:Object.entries(resource)
+ ,transform:Object.entries(transform).filter(([key,value])=>
+ value.constructor&&value.constructor.name=="AsyncFunction").map(([key])=>key).sort(value=>(value!=preset.transform)-1)
+ //,matrix:Array.from(resource.descendants().reduce((keys,node)=>
+ //Array.from(node.occurrence||[]).reduce((keys,key)=>keys.add(key),keys),new Set()))
+ ,spread:["force","left","right","up","down","radius"]
+ ,title:["name","image","wiki image"]
+ ,gradual:false
+ };
+}
+
+var action=action=>action.toString().replace(
+ /(^function \w+\([\w,]*\)\n\{)|(\}$)/g
+,"").replace(
+ /(^\(\)=>\n*\{*|\}*$)/
+,"");

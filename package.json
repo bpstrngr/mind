@@ -60,6 +60,7 @@
         "node_modules/d3-geo/src/index.js"
       ]
     },
+    "mrrio_2020_jspdf.js": {"jspdf": ["dist/jspdf.es.js"]},
     "mozilla_2020_pdf.js": {"pdfjs-dist": ["lib/pdf.js"]},
     "mozilla_2020_pdf_worker.js": {"pdfjs-dist": ["lib/pdf.worker.js"]},
     "mozilla_2020_pdf_viewer.js": {"pdfjs-dist": ["lib/pdf_viewer.js"]},

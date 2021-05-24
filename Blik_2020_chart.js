@@ -1,4 +1,5 @@
-import {window,scan,color,vectors,awesome,note,svgns} from "./Blik_2020_document.js";
+import {note,window} from "./Blik_2020_platform.js";
+import {scan,color,vectors,awesome,svgns} from "./Blik_2020_document.js";
 import * as d3 from './Bostock_2020_d3v6.js';
 import clock from "./Blik_2020_time.js";
 
@@ -62,7 +63,7 @@ export async function column(history)
 
 export async function row(source)
 {//var model=await fetch(source).then(resource=>resource.json());
- if(typeof source=="string")
+ if(typeof source=="string"||source instanceof String)
  try{source=JSON.parse(source);}
  catch(fail){return window.document.createTextNode(fail.toString());}
  let homogenous=Object.entries(source).reduce((variety,[key,value])=>variety.add([...key].every(char=>char==char.toUpperCase())?"heading":key.includes("(")?"compound":"entry"),new Set()).size==1;
@@ -80,7 +81,7 @@ export async function row(source)
  piece.appendChild(window.window.document.createElementNS("http://www.w3.org/2000/svg","title")).textContent=key;
  //piece.style.width=piece.style.width||window.innerWidth/(items.length+1)*(items.length<window.innerWidth/50?1:(items.length/50));
  //if(value.length)piece.querySelector("img").onload=(event)=>{let canvas=window.document.createElement("canvas");canvas.width=event.target.naturalWidth,canvas.height=event.target.naturalHeight;canvas.getContext("2d").drawImage(event.target,0,0);}})
- piece.setAttribute("title",key);
+ if(piece.setAttribute)piece.setAttribute("title",key);
  piece.id=key.replace(" ","_");
  return frame//.closest('table')
 },scan({"table":{"tbody":{"tr":{}},"class":homogenous?"homogenous":"heterogenous"}}).childNodes[0].childNodes[0]).closest("table");
@@ -171,34 +172,84 @@ export async function bar(source,negative)
 }
 
 export async function spreadsheet(sheet,{put})
-{var daynight=["#00838f","#ef6c00","#00838f"];
+{var daynight=["#00838f","#f57c00","#00838f"];
  var spectrum=d3.scaleLinear().range(daynight).domain(Array.apply(null,Array(daynight.length--)).map((item,index)=>index/(daynight.length)).reverse());
- var columns=["B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB"];
+ var columns=["B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD"];
  let {data:{values,range},config:{url}}=sheet;
+ let checked={TRUE:true,FALSE:false};
+ let checkboxrangestart=values.findIndex(row=>row.some(value=>checked[value]!=undefined));
+ let checkboxrangeend=values.findIndex((row,index)=>(9<index)&&(checked[row[3]]==undefined));
  let tr=values.map(function(row,line,lines)
 {let td=row.map(function(field,column,{length})
-{let checked={TRUE:true,FALSE:false};
- let style=line&&["G","L","Q","V"].includes(columns[column])&&!isNaN(checked[row[column+1]])?"box-shadow:1px 0;":""
- let disabled=!put;
+{let boolean=!isNaN(checked[row[column]]);
+ let style=line&&["G","L","Q","V"].includes(columns[column])&&boolean?"border-right:2px solid var(--isle);":"";
+ //if(length-1!=column&&[checkboxrangestart,checkboxrangeend].includes(line)&&boolean)style+="border-bottom:2px solid var(--isle);";
+ let heading=column+1==length||!column;
+ if(heading)style+="cursor:pointer;";
+ let town=line&&(line+1!=lines.length)&&(line<checkboxrangestart||line>checkboxrangeend);
+ //if(heading&&timezone)style+="color:var(--isle);";
+ let locked=row[length-1].startsWith("🔒");
+ let disabled=!put||locked;
+ let id=columns[column]+(line+1);
  if(checked[field]!==undefined)
- return {input:{type:"checkbox",checked:checked[field],disabled,value:columns[column]+(line+1)},style}
- let color=length-1!=column&&column?"background-color:"+spectrum(Number(field)/24):"";
- return {"#text":field,style:style+"text-align:center;white-space:nowrap;"+(lines.length-1!=line&&line?color:"")}
+ return {input:{type:"checkbox",checked:checked[field],disabled,id},style:"border:2px solid transparent;"+style}
+ let color=length-1>column&&column?"background-color:"+spectrum(Number(field)/24):"";
+ return (
+ {...line&&heading&&
+ {onclick:"let {style}=this.closest('tr');setTimeout(()=>style.display='none',(style.opacity=0)+500);"
+ ,title:column&&!town?locked?"unlock":"lock":"hide"
+ }
+ ,id
+ ,"#text":field
+ ,style:style+"font-weight:800;text-align:"+(!town&&heading&&line?column?"left":"right":"center")+";white-space:nowrap;"+(lines.length-1!=line&&line?color:"")
+ });
 });
- return {td}
+ return {td,style:"line-height:1.7em;opacity:1;transition:all 0.5s;"}
 });
- tr.push({td:await Promise.all(values.pop().map(field=>bar(field).then(svg=>({svg}))))})
+ let sums=values.pop();
+ tr.push({td:await Promise.all(sums.map(field=>bar(field).then(svg=>({svg}))))})
  //tr.push({td:{"#text":"sign out",onclick:click=>gapi.auth2.getAuthInstance().signOut()}})
- let table=scan({div:{style:"max-width:100%;overflow:scroll;padding-bottom:"+values.reduce((count,row)=>row.some(value=>["TRUE","FALSE"].includes(value))?count+1:count,0)*10+"px",table:{style:"margin:auto",tbody:{tr}}}});
+ let table=scan(
+ {div:
+ {style:"max-width:100%;overflow:scroll;padding-bottom:"+values.reduce((count,row)=>
+ row.some(value=>["TRUE","FALSE"].includes(value))?count+1:count,0)*18+"px"
+ ,table:{cellspacing:"0",style:"margin:auto",tbody:{tr}}
+ }
+});
  let spreadsheetId=url.match(/sheets\/([^\/]+)\/values/)[1];
- let edit=async({target})=>note(await fetch("google/sheets"
+ let edit=async({target})=>
+{let boolean=target.checked!=undefined;
+ note(await fetch("google/sheets"
 ,{method:"put",headers:{"Content-Type":"application/json"},body:JSON.stringify(
- {spreadsheetId,range:range.split("!").reduce(page=>page+"!"+target.value)
- ,resource:{values:[[target.checked]]}
+ {spreadsheetId,range:range.split("!").reduce(page=>page+"!"+target.id)
+ ,resource:{values:[[boolean?target.checked:target.textContent]]}
  ,valueInputOption:"RAW"
  })
- }));
+}));
+ if(!boolean)return;
+ let column=target.id.match(/[a-zA-Z]*/)[0];
+ let index=columns.indexOf(column);
+ let rows=Array.from(target.closest("tbody").querySelectorAll("tr"));
+ let lastrow=rows.pop();
+ sums[index]=Number(sums[index])+(target.checked?1:-1);
+ Array.from(rows.pop().querySelectorAll("td"))[index].textContent=sums[index];
+ bar(String(sums[index])).then(svg=>
+{Array.from(lastrow.querySelectorAll("td"))[index].remove();
+ let cell=document.createElement("td");
+ cell.appendChild(svg);
+ lastrow.insertBefore(cell,Array.from(lastrow.querySelectorAll("td"))[index])
+});
+};
+ let lock=async({target})=>
+ (target.textContent=target.textContent.replace(/🔒|🔓/,match=>match=="🔓"?(target.title="unlock")&&"🔒":((target.title="lock")&&"🔓")))&&
+ edit({target})&&
+ Array.from(target.closest("tr").querySelectorAll("input")).forEach(input=>input.disabled=target.textContent.startsWith("🔒"));
  Array.from(table.querySelectorAll("input")).forEach(input=>input.onchange=edit);
+ Array.from(table.querySelectorAll("tr")).slice(checkboxrangestart,checkboxrangeend).forEach(row=>
+ Array.from(row.querySelectorAll("td")).pop().onclick=lock);
+ document.querySelector("img").onclick=()=>
+ Array.from(table.querySelectorAll("tr")).forEach(row=>Object.assign(row.style,{display:"table-row",opacity:1}));
+ document.querySelector("img").style.cursor="pointer";
  return table;
 }
 
@@ -259,7 +310,7 @@ export async function calendar(source,{domain,range})
  //svg.append("g").attr("class","y axis").call(d3.axisLeft(y));
  //svg.append("path").datum(keys).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none").attr("d"
 //,d3.line().x(x).y(node=>0).curve(d3.curveMonotoneX));
- let svg=d3.create("svg").attr("width",width+60).attr("height",max*scale+30).style("overflow","visible");
+ let svg=d3.select(scan({svg:{width:width+60,height:max*scale+30,style:"overflow:visible"}}));
  let months=["January","February","March",,,,,,,,"November","December"];
  Object.entries({month:"#c62828",now:"#616161"}).forEach(([id,value])=>
  svg.append(node=>scan({defs:{linearGradient:{id,gradientTransform:"rotate(90)"
@@ -273,7 +324,8 @@ export async function calendar(source,{domain,range})
  //axis=lines.append("g").attr("class","x axis").attr("transform","translate(0,"+max*scale+")").call(axis).attr("font-family","averia");
  let curve=lines.append("path").datum(domain.filter(key=>!isNaN(values[key]))).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none").attr("d"
 ,d3.line().x(x).y(key=>y(values[key])));//.curve(d3.curveMonotoneX));
- [curve.node(),0].reduce(function split(curve,length)
+ if(curve.getPointAtLength)
+ [note(curve.node()),0].reduce(function split(curve,length)
 {let vector=[length,length+10].map(length=>curve.getPointAtLength(length));
  return [vector,...vector.reduce(({x},next)=>x!=next.x)?[curve,length+10].reduce(split):[]];
 }).map((split,index,{length})=>split.reduce((start,end)=>
@@ -299,4 +351,59 @@ export async function calendar(source,{domain,range})
 
 export async function gantt(source,{domain,range})
 {
+}
+
+export async function chart(source)
+{let months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+ let times=Object.values(source).map(({completed})=>completed).filter(Boolean).map((date)=>new Date(date).getTime())
+ let [min,max]=["min","max"].map(edge=>Math[edge](...times));
+ let [start,end]=["2020-09-01","2022-03-01"].map(date=>new Date(date).getTime());
+ let [width,height]=[600,Object.keys(source).length-1];
+ let scale=4;
+ let x=d3.scaleLinear().domain([start,end]).range([0,width]);
+ let y=d3.scaleLinear().domain([0,height]).range([height*scale,0]);
+ let svg=d3.create("svg").attr("width",width+30).attr("height",height*scale+30).style("overflow","visible");
+ let palette={month:"#c62828",now:"#9e9e9e",analysis:"#27c7db",design:"#43a048",development:"#ffcc01",implementation:"#f54437",evaluation:"#9412fe"};
+ Object.entries(palette).forEach(([id,value])=>
+ svg.append(node=>scan({defs:{linearGradient:{id,gradientTransform:"rotate(90)"
+,stop:
+[{offset:"0%","stop-color":value}
+,{offset:"50%","stop-color":value}
+,{offset:"100%","stop-color":value}
+]}}},null,svgns)));
+ let chart=svg.append("g").attr("transform","translate(20,10)");
+ [[start,end],...Array(3).fill([max,max+1000*60*60*24*7*8])].forEach((ideal,module)=>
+ chart.append("path").datum(ideal).attr("d",d3.line().y((d,i)=>y(i?module?height/2:height:0)).x(d=>x(d))).attr("class","line").attr("stroke",palette.now).attr("stroke-width",1.5).attr("fill","none").style("opacity",0.5));
+ let rulers=
+[Date.now()
+,...[9,11,1,3,5,7,9,11,1,3].map((month,index)=>new Date("20"+(1<index?7<index?22:21:20)+"-"+month+"-01").getTime())
+];
+ rulers.forEach((time,index,rulers)=>
+ chart.append(node=>scan({rect:
+ {x:x(time),height:y(0),width:1
+ ,fill:palette[index?index<9?index<7?index<5?index<3?"analysis":"design":"development":"implementation":"evaluation":"now"]
+ ,opacity:"0.5","class":"ruler"
+ ,title:{"#text":index?months[new Date(time).getMonth()]:("Today:\n"+clock(time,"datetime"))}
+ }},null,svgns))&&
+ chart.append(node=>scan({text:
+ {x:x(time+15*24*60*1000)
+ ,y:y(0),dy:index?"1em":"2em","text-anchor":"middle"
+ ,fill:palette[index?index<9?index<7?index<5?index<3?"analysis":"design":"development":"implementation":"evaluation":"now"]
+ ,"font-size":"0.9em","class":"ruler"
+ ,"#text":index?months[new Date(time).getMonth()]:clock(new Date,"date").slice(5,-1).replace(".","/")
+ }},null,svgns)));
+ let phases={analysis:"2020-10-01",design:"2021-02-01",development:"2021-06-01",implementation:"2021-10-01",evaluation:"2022-02-01"};
+ Object.entries(phases).forEach(([phase,date],index,{length})=>
+ chart.append(node=>scan({text:
+ {x:x(new Date(date).getTime())//x(start+[end-start,index/length].reduce((span,offset)=>span*offset+span/length/2))
+ ,y:y(height),dy:"-0.5em","text-anchor":"middle"
+ ,"#text":phase.toUpperCase()
+ ,fill:palette[phase]
+ }},null,svgns)));
+ chart.append("path").datum([start,...times]).attr("d",d3.line().y((d,i)=>y(i)).x(x)).attr("class","line").attr("stroke","#ffc400").attr("stroke-width",1.5).attr("fill","none");
+ let modules=Object.entries(source).filter(([key,value])=>value.start);
+ [["Overall progress",{start:"2021-05-10"}],...modules].forEach(([key,value],index)=>
+ chart.append("circle").attr("cx",x(new Date(value.start).getTime())).attr("cy",y(index?0:11)).attr("r",2.5).attr("fill",palette.development).append("title").text(index?"Module "+key:key));
+ //chart.append("text").attr("x",x(new Date(value.start).getTime())).attr("y",y(index?0:12)).attr("dy","-1em").attr("dx","1em").attr("fill",palette.now).text(key));
+ return  note(await fetch("asana").then(r=>r.text()))&&svg.node()
 }

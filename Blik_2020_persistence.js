@@ -1,4 +1,5 @@
 import {promises as fs} from "fs";
+import {note,resolve,fetch} from "./Blik_2020_platform.js";
 import clock from "./Blik_2020_time.js";
 import path from "path";
 import zlib from "zlib";
@@ -7,20 +8,6 @@ import os from "os";
 import v8 from "v8";
 import crypto from "crypto";
 import npm from "./package.json";
-
-export function output(module,debug)
-{let output=debug||console.log;
- module=module.substring(Math.max(module.lastIndexOf("_"),module.lastIndexOf("/"))+1,module.lastIndexOf(".")).toUpperCase();
- return function(...input)
-{let stack=new Error().stack.split(/\n */)[2];
- let name=stack.replace(/^.*at |[^ ]*$/g,"");
- let place=stack.match(/file[^\)]*/,"");
- output("\x1b[31m"+clock(new Date())+"\x1b[37m"+module+"."+name);
- output(...input);
- place&&output("\x1b[30m"+place[0]+"\x1b[0m");
- return input[0]
-};
-};
 
 var exclusions=
 ["*.cjs","*.kml","*.pem"
@@ -42,12 +29,12 @@ var exclude=(name,exclusions)=>
 
 export default
 {get:async function(request,mode)
-{mode=request.mode&&request.query.mode||mode;
- request=request.url?request.url:request;
- if(request[0]&&request[0].slice(0,4)=="http")
- return fetch(request);
- request=(Array.isArray(request)?request:request.split("/")).filter(Boolean).filter(step=>step!=".")
- let functions=!request.length?await module("./Blik_2020_root.js"):null;
+{mode=request.query&&request.query.mode||mode;
+ if(request.length)request={url:request};
+ if(request.url.slice(0,4)=="http")
+ return forward(request.url,request);
+ request=(Array.isArray(request.path)?request.path:request.url.split("/")).filter(Boolean).filter(step=>step!=".");
+ let functions=!request.length?await module(this):null;
  let files=await new Promise(seek=>
  seek(path.resolve("."))).then(async function seek(url)
 {let next=request.shift()||"";
@@ -74,7 +61,7 @@ export default
  return !files?functions:Object.assign(files,functions);
 }
 ,put:async function(request)
-{let url=path.join(...request.url);
+{let url=path.join(...request.path);
  let fresh=await fs.open(url,"wx").catch(fail=>fail);
  if(!(fresh instanceof Error))
  return await save(fresh,request.body,false,url);
@@ -96,7 +83,7 @@ export default
  let {rank}=author&&await get("/mind/"+author);
  if(rank!="ranger")
  return "unauthorised";
- return fs.unlink(path.resolve(...request.url)).then(done=>request.url+" deleted");
+ return fs.unlink(path.resolve(...request.path)).then(done=>request.path+" deleted");
 }
 }
 
@@ -112,15 +99,26 @@ export async function read(file,mode)
 }).catch(fail=>fail)
 }
 
-function fetch(file)
-{return new Promise(resolve=>
- import(file.substring(0,file.indexOf(":"))).then(module=>
- module.request({method:"GET",...url.parse(file)},response=>
-{if(response.statusCode=="404")
- return resolve(response.statusMessage);
- response.on("data",data=>response=(typeof response=="string"?response:"")+data);
- response.on("end",done=>resolve(response));
-}).end()))
+function forward(file,request)
+{if(request)request.method=request.method?.toUpperCase()||"GET";
+ let protocol=file.substring(0,file.indexOf(":"));
+ return new Promise(resolve=>
+ import(protocol).then(protocol=>
+{let body=request.body||"";
+ request=protocol.request({method:"GET",...request,...url.parse(file)},response=>
+{let body="";
+ response.on("data",piece=>body+=piece);
+ response.on("end",end=>resolve(
+ {status:response.statusCode
+ ,type:response.headers["content-type"]
+ ,headers:{get:header=>response.headers[header.toLowerCase()]}
+ ,json:()=>Promise.resolve(JSON.parse(body))
+ ,text:()=>Promise.resolve(body||response.statusMessage)
+ }));
+});
+ request.write(String(body));
+ request.end();
+}));
 }
 
 export function shrink(log,replace)
@@ -187,8 +185,69 @@ function compose(...operations){return operations.reduce((composition,operation)
 
 var debug=import("util").then(util=>util.debuglog(import.meta.url.substring(import.meta.url.lastIndexOf("_")+1,import.meta.url.lastIndexOf("."))));
 
-var note=output(import.meta.url);
-
 export function format(json)
 {return JSON.stringify(json).replace(/:{|},|}}|}]/g,match=>match[0]+"\n "+match.substring(1))
+}
+
+export async function mongo(request)
+{let [Mongo,keys]=await Promise.all([resolve("mongodb/index.js"),import("./Blik_2020_parameters.json")]);
+ Mongo=Mongo.default;
+ keys=keys.default[request.headers["x-forwarded-proto"]].mongo;
+ let [cluster,user]=Object.entries(keys)[0];
+ cluster=[Object.entries(user)[0].join(":"),cluster].join("@");
+ cluster="mongodb+srv://"+cluster+"/"+request.path.shift()+"?retryWrites=true&w=majority";
+ cluster=new Mongo(cluster,{useNewUrlParser:true});
+ note(cluster)
+ return ;new Promise(resolve=>cluster.connect(function(fail)
+{if(fail)return resolve(fail);
+ cluster.db("test").collection("devices");
+ cluster.close();
+ resolve();
+})).then(note);
+}
+
+export async function google(request)
+{let keys="./Blik_2020_parameters.json";
+ let [{google},parameters]=await Promise.all([resolve("googleapis/build/src/index.js"),read(keys,"object")]);
+ if(request.path[0]=="image")
+ return fetch("https://www.googleapis.com/customsearch/v1/siterestrict?q="+request.path[1]+"&searchType=image&cx="+parameters.google.search.wiki+"&key="+parameters.google.api);
+ let {client,secret}=parameters.google;
+ let redirect=request.headers["x-forwarded-proto"]+"://"+request.headers.host+"/google";
+ let authority=new google.auth.OAuth2(client,secret,redirect);
+ authority.on('tokens',token=>fetch(keys+"?force=overwrite"
+,{method:"put",body:format(
+ {...parameters,google:
+ {...parameters.google,token:{...token,refresh_token:token.refresh_token||parameters.google.token.refresh_token}
+ }
+ })
+ }).then(note));
+ let scope=["https://www.googleapis.com/auth/spreadsheets",'https://www.googleapis.com/auth/calendar'];
+ if(!parameters.google.token||!parameters.google.token.refresh_token)
+ if(!request.query.code)
+ return {status:302,location:authority.generateAuthUrl({scope,access_type:"offline",prompt:"consent"})};
+ else return new Promise(resolve=>
+ authority.getToken(request.query.code,(...result)=>
+ resolve(result))).then(result=>result.find(Boolean)).then(token=>
+ note(token instanceof Error?token:"Google token saved."));
+ authority.setCredentials(parameters.google.token);
+ let module=request.path.shift();
+ let version=
+ {version:{sheets:"v4",calendar:"v3"}[module]
+ ,auth:authority
+ };
+ google=google[module](version);
+ let id={sheets:"spreadsheet"}[module]||module;
+ request.query[id+"Id"]=request.path.shift();
+ let {method,body}=request;
+ module=[{sheets:"spreadsheets",calendar:"events"}[module]];
+ module.push({spreadsheets:"values",events:"list"}[module]);
+ if(module[0]=="spreadsheets")
+ module.push({put:"update"}[method]||method)
+ if(method!="put")body=request.query;
+ return new Promise(resolve=>
+ [google,...module].reduce((google,module)=>(
+ module=google[module])
+?module.bind?module.bind(google):module
+:google)(body
+,(...result)=>resolve(result))).then(result=>result.find(Boolean));
 }

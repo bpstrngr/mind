@@ -1,6 +1,5 @@
-import file,{output} from "./Blik_2020_file.js";
-
-var note=output(import.meta.url);
+import file from "./Blik_2020_persistence.js";
+import {note} from "./Blik_2020_platform.js";
 
 export default
  (resource,key,hash)=>

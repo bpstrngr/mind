@@ -1,17 +1,19 @@
-import {scan,vectors as icons,awesome,color,fragment} from "./Blik_2020_document.js";
-import {open,reform,get} from "./Blik_2020_form.js";
-import {window,path,retreat,note,compose,svgns} from "./Blik_2020_window.js";
+import {scan,vectors as icons,awesome,color,fragment,svgns} from "./Blik_2020_document.js";
+import {reform} from "./Blik_2020_transform.js";
+import actions,{open} from "./Blik_2020_actions.js";
+import {window,path,retreat,note,compose} from "./Blik_2020_platform.js";
 import * as d3 from './Bostock_2020_d3v6.js';
 import clock from "./Blik_2020_time.js";
 
 export default async function network(concept,options)
-{if(concept.constructor.name!="Node")
+{await icons;
+ if(concept.constructor.name!="Node")
  concept=conceive(concept,options);
  options.monospace=options.monospace||10;
  spread(concept,options);
  let {width,value,height}=concept;
  let {fragment,title,still,gradual}=options;
- note(options.matrix)
+ note({matrix:options.matrix})
  let vectors=options.matrix
 ?concept.leaves().map(source=>Array.from(source.relations||[]).map(([target,value])=>({source,target,value}))).flat()
 :(concept.children||[]).map(concept=>concept.links()).flat();
@@ -62,7 +64,7 @@ export default async function network(concept,options)
  simulation.force("link",d3.forceLink(vectors,linkindex).strength(0));
  simulation.on("tick"
 ,simulate({density:0,exposure:0,imposure:0,internal:0,complexity:0,dominance:0}));
- note(options.name,options.fragment?"tethered.":"ready.");
+ note(options.source,options.fragment?"tethered.":"ready.");
  return svg.node();
 }
 
@@ -381,11 +383,11 @@ export function conceive(resource,options={})
  !node.parent.children.length&&
  delete node.parent.children)
  concept.descendants().forEach((node,index,nodes)=>Object.assign(node
-,{title:label(node,title,path(options.name))
+,{title:label(node,title,path(options.source))
  ,width:node.descendants().length*monospace*2
  ,value:nodes.length
  }));
- return note([concept,...links]).reduce(infer);
+ return [concept,...links].reduce(infer);
 }
 
 function matrix(resource,scope)
@@ -419,11 +421,11 @@ function infer(domain,[origin,matrix])
 {matrix.forEach((record,index)=>
  record.forEach((vector,field)=>
 {if(!vector)return;
- let [source,target]=Array.isArray(origin)
-?[[domain,...origin].reduce((domain,origin)=>
+ let [source,target]=Array.isArray(origin)?
+[[domain,...origin].reduce((domain,origin)=>
  domain.children.find(({title})=>title==origin))
 ,domain.children[0].leaves()[field]
- ]
+]
 :domain.children.map((domain,order)=>
  domain.leaves()[[field,index][order]]);
  [source,target]=[source,target].sort((source,target)=>
@@ -584,7 +586,7 @@ function edit(node)
  style=JSON.stringify(style).replace(/\"*[,]\"|{\"*|}/g,";").replace(/\"*[:]\"*/g,":");
  form=scan({form:{class:"subject",title:node.title,style}});
  open(fragment.appendChild(form));
- form.inputs.name=String;
+ form.inputs.source=String;
  form.inputs.start=Date;
  form.inputs.end=Date;
  form.escape=function(){label.style.display="block";delete node.selected;this.remove();}
@@ -594,8 +596,8 @@ function edit(node)
  reform.bind(form)({[node.title]:Object.fromEntries(record)});
  form.appendChild(scan({span:{"#text":"+",style:"cursor:pointer"}})).onclick=
  click=>form.reform({extend:{key:"",value:""}});
- //form.name.style.textAlign="left"
- form.name.focus()
+ //form.source.style.textAlign="left"
+ form.source.focus()
  form.removeEventListener("switch",form.events.switch);
  form.removeEventListener("submit",form.events.submit);
  form.addEventListener("keydown",function({keyCode}){keyCode==27&&this.escape()});
@@ -640,7 +642,7 @@ function edit(node)
 {window.Tone.Transport.start();
  if(fragment.getAttribute("title")==room)
  network(conceive(body),{fragment,still:true,spread:"left",cluster:true});
- else get({name:room},window.document.querySelector("div[title$='"+room+"']"))
+ else actions.get({name:room},window.document.querySelector("div[title$='"+room+"']"))
 });
 }
 

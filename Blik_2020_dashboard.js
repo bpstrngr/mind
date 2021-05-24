@@ -2,8 +2,9 @@ import clock from "./Blik_2020_time.js";
 import network,{conceive,subceive} from "./Blik_2020_network.js";
 import {calendar} from "./Blik_2020_chart.js";
 import * as d3 from './Bostock_2020_d3v6.js';
-import {window,scan,vectors,awesome,note,svgns} from './Blik_2020_document.js';
-import {get} from "./Blik_2020_form.js";
+import {window,note} from "./Blik_2020_platform.js";
+import {scan,vectors,awesome,svgns} from './Blik_2020_document.js';
+import {request} from "./Blik_2020_actions.js";
 
 export default async function(backlog)
 {//let classic=await dashboard(backlog.children[1].leaves().map(({data,title})=>
@@ -25,7 +26,7 @@ export default async function(backlog)
  Number(board.querySelector("div#matrix>svg").getAttribute(dimension)));
  matrix=board.querySelector("svg");
  matrix.prepend(window.document.createElementNS(svgns,"g"));
- let chart=await get({name:[progress,meetings],transform:"calendar","domain":["start","dateTime"]},matrix.firstChild,true);
+ let chart=await request.get({source:[progress,meetings],transform:"calendar","domain":["start","dateTime"],target:matrix.firstChild});
  chart=matrix.firstChild;
  let chartheight=Number(chart.getAttribute("height"))/2;
  matrix.prepend(
@@ -47,9 +48,9 @@ export default async function(backlog)
 // chart.setAttribute("transform","translate("+[200,board.querySelector("svg").getAttribute("height")]+")");
 // board.querySelector("svg").appendChild(chart);
 //}
- while(!window.subject.room)
- await new Promise(resolve=>setTimeout(resolve,300));
- await Promise.resolve(window.subject.room);
+ //while(!window.subject.room)
+ //await new Promise(resolve=>setTimeout(resolve,300));
+ //await Promise.resolve(window.subject.room);
  return board;
 }
 

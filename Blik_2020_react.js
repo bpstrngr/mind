@@ -12,15 +12,7 @@ newconsole.bind(window)();
 const fragment=text=>window.document.createRange().createContextualFragment(text);
 const key=(props={})=>Object.assign(props,{key:key.index=(key.index||0)+1});
 
-Promise.all(
-["https://unpkg.com/react@17.0.1/umd/react.development.js"
-,"https://unpkg.com/react-dom@17.0.1/umd/react-dom.development.js"
-].map(module=>import(module))).then(function()
-{const {Fragment,useState,useEffect,useLayoutEffect,useRef,createElement:compose}=window.React;
- const {render}=window.ReactDOM;
- render(compose(Fragment,null,...[Peer,Seed].map(compose)),window.document.body);
-
- function Peer(properties)
+function Peer(properties)
 {const [fields,setfields]=useState({source:"mind/ranger",transform:"network"});
  const [width,stretch]=useState(50);
  let labels={source:"",transform:"as"}
@@ -51,7 +43,7 @@ Promise.all(
  },null,labels)
 }
 
- function Toggle({url})
+function Toggle({url})
 {const icon=useRef(null);
  const [promise,resolve]=useState(false);
  useLayoutEffect(load=>
@@ -62,9 +54,18 @@ Promise.all(
  return compose("svg",key());
 }
 
- function Seed(properties)
+function Seed(properties)
 {const [name,setname]=useState(properties.name);
  return compose("center",{id:"object"});
 }
 
+Promise.all(
+["https://unpkg.com/react@17.0.1/umd/react.development.js"
+,"https://unpkg.com/react-dom@17.0.1/umd/react-dom.development.js"
+,"https://unpkg.com/browse/@reduxjs/toolkit@1.5.1/dist/redux-toolkit.umd.js"
+].map(module=>import(module))).then(function()
+{const {Fragment,useState,useEffect,useLayoutEffect,useRef,createElement:compose}=window.React;
+ const {render}=window.ReactDOM;
+ console.log(redux)
+ render(compose(Fragment,null,...[Peer,Seed].map(compose)),window.document.body);
 });

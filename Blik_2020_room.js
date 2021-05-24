@@ -1,5 +1,5 @@
 import {scan} from "./Blik_2020_document.js";
-import {note,fetch,compose} from "./Blik_2020_window.js";
+import {note,fetch,compose} from "./Blik_2020_platform.js";
 
 export async function open(port,room)
 {let socket=await import(process.execPath.replace("bin/node","lib/node_modules")+"/socket.io/lib/index.js");
@@ -27,7 +27,7 @@ export default
 },sign(author){this.author=author;}
  ,signal(room){this.server.sockets.in(room).emit("signal",this.author)}
  ,message({author,message,room})
-{message={author:author||{name:this.author},message};
+{message={author:author||{name:this.author},message};note(this)
  if(!author)
  (this.adapter.rooms[room]||this._events.join.bind(this)(room)).messages.push(message);
  this.server.sockets.in(room).emit("message",message);
@@ -69,7 +69,7 @@ export default
 ].map(event=>this.server.sockets.in(room).emit(...event))
 }}
 
-export var peer=
+export var stream=
  {message({message,author:{name,image}})
 {message=scan({li:{img:{src:image||"vector/anonymous",height:"12px"},div:{"#text":name||"anonymous"},span:{"#text":message}}})
  if(name=="system")

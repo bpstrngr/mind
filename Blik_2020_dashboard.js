@@ -1,40 +1,27 @@
 import clock from "./Blik_2020_time.js";
-import network,{conceive,subceive} from "./Blik_2020_network.js";
+import network,{sprawl,serialize} from "./Blik_2020_network.js";
 import {calendar} from "./Blik_2020_chart.js";
 import * as d3 from './Bostock_2020_d3v6.js';
 import {window,note} from "./Blik_2020_platform.js";
-import {scan,vectors,awesome,svgns} from './Blik_2020_document.js';
-import {request} from "./Blik_2020_actions.js";
+import {document,vectors,awesome,namespaces} from './Blik_2020_fragment.js';
 
-export default async function(backlog)
+export default async function(resource,{source})
 {//let classic=await dashboard(backlog.children[1].leaves().map(({data,title})=>
  //Object.assign(data[title],{name:title})));
  //classic.style.marginTop="50px";
- backlog=conceive(backlog);
- backlog=backlog.sort((past,next)=>[past,next].map(node=>Number(node.data[node.title].progress)).reduce((past,next)=>
- [past,next].some(isNaN)?1:Number(past<next)-1));
- let matrix=await network(backlog,{spread:"left",still:true,cluster:true});
- let board=scan({div:
- {class:"board",div:
- {matrix,id:"matrix",title:"SEI_2020_course_development_matrix.json",style:"max-width:100vw;overflow:scroll;position:relative;"
- }
-//,{roles,id:"roles",style:"max-width:100vw;overflow:scroll;"}
- }              });
+ //backlog=sprawl(backlog);
+ //backlog=backlog.sort((past,next)=>[past,next].map(node=>Number(node.data[node.title]?.progress)).reduce((past,next)=>
+ //[past,next].some(isNaN)?1:Number(past<next)-1));
+ let fragment=await network(resource,{source,spread:"left",still:true,cluster:true});
  let progress="./SEI_2020_course_development_matrix_log.json";
  let meetings="google/calendar/k0344ccen5stls0gib4isugdlc@group.calendar.google.com/data/items?maxResults=10&timeMin=2020-11-01T00:00:00.000Z";
  let [width,height]=["width","height"].map(dimension=>
- Number(board.querySelector("div#matrix>svg").getAttribute(dimension)));
- matrix=board.querySelector("svg");
- matrix.prepend(window.document.createElementNS(svgns,"g"));
- let chart=await request.get({source:[progress,meetings],transform:"calendar","domain":["start","dateTime"],target:matrix.firstChild});
- chart=matrix.firstChild;
+ Number(fragment.getAttribute(dimension)));
+ let chart=await calendar([progress,meetings],{"domain":["start","dateTime"]});
+ fragment.prepend(...chart.childNodes);
  let chartheight=Number(chart.getAttribute("height"))/2;
- matrix.prepend(
-[window.document.createDocumentFragment()
-,...Array.from(chart.childNodes)
-].reduce((fragment,node)=>fragment.appendChild(node)&&fragment));
  chart.remove();
- chart=board.querySelector("g");
+ chart=fragment.querySelector("g");
  chart.setAttribute("style","overflow:visible;transform:translate(-"+width/3.423+"px,"+(height-chartheight)+"px)");
  let ruler={height:height+15,y:-height+chartheight-15};
  Array.from(chart.querySelectorAll("rect.ruler")).forEach(rect=>
@@ -42,7 +29,7 @@ export default async function(backlog)
  Array.from(chart.querySelectorAll("text.ruler")).forEach(text=>
  text.parentNode.insertBefore(text.cloneNode(true),text).setAttribute("y",ruler.y+17)&&
  text.remove());
- matrix.setAttribute("height",Number(matrix.getAttribute("height"))+chartheight*2)
+ //fragment.setAttribute("height",Number(fragment.getAttribute("height"))+chartheight*2)
  //for(let child of Array.from(chart.childNodes))
 //{if(child.nodeName.toLowerCase()=="g")
 // chart.setAttribute("transform","translate("+[200,board.querySelector("svg").getAttribute("height")]+")");
@@ -51,7 +38,7 @@ export default async function(backlog)
  //while(!window.subject.room)
  //await new Promise(resolve=>setTimeout(resolve,300));
  //await Promise.resolve(window.subject.room);
- return board;
+ return fragment;
 }
 
 function put(body)
@@ -66,7 +53,7 @@ function update(record)
  while(this.firstChild)this.firstChild.remove();
  this.onclick=record?undefined:call=>update.bind(this)({data:{name:"",parent:"",description:"",responsible:"",progress:0,post:Date.now()}});
  if(!record)
- return this.appendChild(scan({svg:{width:"3em",style:"fill:var(--isle);cursor:pointer;",...vectors.plus.svg}})).parentNode;
+ return this.appendChild(document({svg:{width:"3em",style:"fill:var(--isle);cursor:pointer;",...vectors.plus.svg}}).next().value)&&this;
  Object.entries(record.data||record).forEach(([key,value])=>
 {if(!["post","responsible","name","progress","parent","description"].includes(key))
  return;
@@ -81,7 +68,7 @@ function update(record)
 })
  let trash=this.querySelector(".trash");
  if(!trash)
- trash=this.appendChild(scan(awesome["fas fa-trash"]));
+ trash=this.appendChild(document(awesome["fas fa-trash"]).next().value);
  trash=this.lastChild;
  trash.addEventListener("click",call=>update.bind(this)());
  trash.classList.add("trash");
@@ -93,7 +80,7 @@ function label([key,value],record)
 {let [pencil,check]=["fas fa-pencil-alt","fas fa-check"].map(name=>awesome[name].replace(/^<svg /,'<svg height="1em" class="pencil" fill="var(--text)" '));
  let select=["responsible","parent","progress"].includes(key);
  let time=["put","post"].includes(key);
- let field=scan(select
+ let field=document(select
 ?{select:
  {name,class:name,option:
  {progress:Array(11).fill(0).map((zero,index)=>index*10)
@@ -104,7 +91,8 @@ function label([key,value],record)
  }
 :key=="name"
 ?{p:{class:key,span:{"#text":value||"-"},"#text":pencil}}
-:{span:{class:key,span:{"#text":value||"-"},"#text":time?undefined:pencil}});
+:{span:{class:key,span:{"#text":value||"-"},"#text":time?undefined:pencil}
+ }).next().value;
  d3.select(field).on(select?"change":"click",edit).on("keydown",select||function(event)
 {if(event.keyCode!=13)return;
  event.preventDefault();
@@ -120,7 +108,7 @@ function edit({type})
 ?this.removeAttribute("contenteditable")
 :!this.setAttribute("contenteditable",true);
  let [pencil,check]=["fas fa-pencil-alt","fas fa-check"].map(name=>awesome[name].replace(/^<svg /,'<svg height="1em" class="pencil" fill="var(--text)" '));
- this.replaceChild(scan(editing?check:pencil),this.querySelector(".pencil"));
+ this.replaceChild(document(editing?check:pencil).next().value,this.querySelector(".pencil"));
  if(editing)
  return [window.getSelection(),"removeAllRanges","addRange"].reduce((focus,method,index)=>
  !focus[method](index==2&&[window.document.createRange(),"Start","End"].reduce((range,side,index)=>
@@ -146,7 +134,7 @@ async function dashboard(backlog)
  let style="text-align:center;display:block;background-color:var(--isle);border-radius:10px;cursor:pointer;max-width:"+100/states.length+"vw;padding:10px;";
  let tr=["th","td"].map((row,td)=>({[row]:states.map(id=>td?{id,style:"text-align:center"}:{"#text":id})}));
  Object.assign(tr[1].td[0],{div:{id:"plus",class:"card",style:"padding:0;background-color:transparent;display:inline-block;border-radius:50%;",svg:{...vectors.plus.svg,width:"3em",style:"fill:var(--isle);cursor:pointer;"}}});
- let table=scan({table:{id:"dashboard",style:"margin:auto",tr}});
+ let table=document({table:{id:"dashboard",style:"margin:auto",tr}}).next().value;
  table.querySelector("#plus").onclick=call=>put(records.data().concat({progress:0,post:Date.now()}).map((record,index)=>
  Object.assign(record,{index})))
  let index=({index})=>index;
@@ -160,7 +148,7 @@ async function dashboard(backlog)
 {let editing=this.getAttribute("contenteditable")=="true"
 ?this.removeAttribute("contenteditable")
 :!this.setAttribute("contenteditable",true);
- this.replaceChild(scan(editing?check:pencil),this.querySelector(".pencil"));
+ this.replaceChild(document(editing?check:pencil).next().value,this.querySelector(".pencil"));
  if(editing)
  return [window.getSelection(),"removeAllRanges","addRange"].reduce((focus,method,index)=>
  !focus[method](index==2&&[window.document.createRange(),"Start","End"].reduce((range,side,index)=>
@@ -178,7 +166,7 @@ async function dashboard(backlog)
  put(body);
 };
  let enter=({status,progress,name,responsible,description,post,deadline})=>
-{let card=scan(
+{let card=document(
  {div:
  {style,class:"record card"
  ,p:{class:"name",span:{"#text":name||"-"},"#text":pencil}
@@ -191,7 +179,7 @@ async function dashboard(backlog)
 ].map(select)
  ,"#text":awesome["fas fa-trash"].replace(/^<svg /,"<svg class='trash' width='1em' ")
  }
- });
+ }).next().value;
  Object.keys({progress,name,responsible,description}).concat("trash").map(key=>
  Array.from(card.querySelectorAll("."+key))).flat().forEach(function(field)
 {let select=["select","input"].includes(field.nodeName.toLowerCase());
@@ -236,18 +224,18 @@ async function dashboard(backlog)
 
 function enter(node)
 {if(!node)
- return scan(
+ return document(
  {div:
  {id:"plus",class:"card",style:"background-color:transparent;padding:0;display:inline-block;border-radius:50%;"
  ,svg:{width:"3em",style:"fill:var(--isle);cursor:pointer;",...vectors.plus.svg}
  }
- })
+ }).next().value
  let {parent,name,status,progress,responsible,description,post,deadline}=node.data||node;
  let [pencil,check]=["fas fa-pencil-alt","fas fa-check"].map(name=>awesome[name].replace(/^<svg /,'<svg height="1em" class="pencil" fill="var(--text)" '));
  let select=([name,options,selected])=>({name,class:name,option:options.map(value=>({"#text":value,value,selected:value==selected}))});
  let roles=["","Sponsor","Manager","Coordinator","Technician","Expert","Instructor","Leader","Writer","Author","Tester","Editor","Designer","Producer"];
  let parents=["module","admin"];
- let record=scan(
+ let record=document(
  {div:
  {style:"text-align:center;background-color:var(--isle);border-radius:10px;cursor:pointer;max-width:"+100/3+"vw;padding:10px;transition:all 0.5s"
  ,class:"card"
@@ -262,7 +250,7 @@ function enter(node)
 ].map(select)
  ,"#text":awesome["fas fa-trash"].replace(/^<svg /,"<svg class='trash' width='1em' ")
  }
- });
+ }).next().value;
  Object.keys({progress,name,responsible,description}).concat("trash").map(key=>
  Array.from(record.querySelectorAll("."+key))).flat().forEach(function(field)
 {let select=["select","input"].includes(field.nodeName.toLowerCase());

@@ -2,9 +2,11 @@ consume(import.meta.url);
 
 export function consume(module)
 {if(!globalThis.window&&(module.replace("file://","")==process.argv[1])&&process.argv.slice(2).length)
- [process.argv.splice(2),0].reduce(([command,...args])=>
+ [process.argv.slice(2),0].reduce(([command,...args])=>
  import(module).then(module=>module[note(command,module)](...args)));
  else note("import without arguments");
+ //let tests=module.replace(".js","_tests.js");
+ //await import("./Blik_2020_integrity.js").then(({check})=>check(module,tests));
 }
 
 import clock from "./Blik_2020_time.js";
@@ -18,28 +20,31 @@ export function note(...notes)
  label=file.substring(label+1,file.lastIndexOf(".js"));
  return [file,label.toUpperCase(),name];
 });
- let source=(stack.find(([file])=>file)||[])[0];
+ let source=(stack.find(([file])=>file)||["...intractable"])[0];
  stack="\x1b[36m"+stack.map(([,...label])=>label.filter(Boolean).join(".")).flat().reverse().map((stack,index,{length})=>
- (length-1==index?"\x1b[36m\x1b[7m":"")+stack).join("\x1b[0m/\x1b[36m")+"\x1b[0m:";
- console.log("\x1b[36m\x1b[7m"+clock(new Date())+"\x1b[0m "+stack)
+ (length-1==index?"\x1b[36m\x1b[7m":"")+stack).join("\x1b[0m/\x1b[36m")+"\x1b[0m";
+ source=!globalThis.window?"\x1b[30m"+source+"\x1b[0m":source;
+ console.log("\x1b[36m\x1b[7m"+clock(new Date())+"\x1b[0m "+stack+" ("+source+":")
  console.log(...notes);
- console.log(!globalThis.window?"\x1b[30m"+source+"\x1b[0m":source);
- return notes[0]
+ //console.log(source)
+ return notes[0];
 };
 
- // tread, untread and skip ahead, or stay on object path. invoke if function.
-export function route(path,...curry)
-{return [Promise.resolve(this),...path].reduce(route=>
- route.then(source=>[route=source,path.shift()]).then(([source,tread])=>
- source[tread]||source[tread&&path.unshift(tread)&&path.slice(-1)[0]]||source).then(source=>
- source instanceof Function
-?source.call(route,curry.shift())
-:source));
+ // tread, fall back, untread and skip ahead, or stay on object path. invoke if function.
+export function route(path,...input)
+{return [this,...path].reduce(function trace(route)
+{if(route instanceof Promise)return route.then(trace.bind(this));
+ let tread=path.shift();
+ let source=route[tread]||this[tread]||route[tread&&path.unshift(tread)&&path.slice(-1)[0]]||route;
+ return source instanceof Function
+?source.call(route,input.shift())
+:source
+}.bind(this));
 };
 
-export var expect=async value=>
-typeof value!="undefined"?value:new Promise(resolve=>
-setTimeout(tick=>resolve(value),500)).then(expect);
+ export var expect=value=>
+ typeof value!="undefined"?value:new Promise(resolve=>
+ setTimeout(tick=>resolve(value),500)).then(expect);
 
 export var require=async path=>(require.instance||
 await import("module").then(({createRequire})=>
@@ -56,37 +61,6 @@ export var collect=(values,...names)=>
 :new Promise(proceed=>import("readline").then(({createInterface})=>
  createInterface({input:process.stdin,output:process.stdout}).question(parameter+":",argument=>proceed(argument))))
 },values);
-
-export function universalconsole()
-{if(!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.navigator.userAgent))
- return window.console;
- //alert("triple tap for debug console");
- window.console=
-{"queue":[]
-,"log":function()
-{return Array.from(arguments).forEach(item=>this.queue.push(item))
- let stack=new Error().stack.split("\n");
- stack=stack[stack[2].match("dlogger|window\.note|window\.onerror")?3:2];
- stack=stack.replace(/at ([^ ]+) \((.*)\)/g,(match,stack,place)=>
- place.replace(/^.*?\d\//,"./")+" ("+stack+")");
- stack=[stack,...Array.from(arguments)].map(item=>JSON.stringify(item)).join("\n");
- this.queue.push(stack.replace(/^\\u001b\[\d+m|\[\d+m$|%c/gm,""));
-}
-,"dir":function(obj){console.log("Content of "+obj);for(var key in obj){var value=typeof obj[key]==="function"?"function":obj[key];console.log("-\""+key+"\"->\""+value+"\"");}}
-,"info":window.console.log
-,"trace":function(){var stack;try{throw new Error();}catch(ex){stack=ex.stack;};console.log(Array.from(arguments).join("\n")+stack.split("\n").slice(2).join("\n"));}
-,"show":function()
-{let panel=window.document.body.appendChild(window.document.createElement("div"));
- panel.setAttribute("style","position:absolute;background-color:black;color:olivegreen;font-family:monospace;font-size:12px;top:0;left:0;width:100vw;height:100%;overflow:scroll");
- panel.onclick=function(){this.parentNode.removeChild(this)};
- this.queue.forEach(function(log){let note=panel.appendChild(window.document.createElement("p"));note.style.whiteSpace="pre-wrap";note.innerHTML=log});
- this.queue=[];
-}
-};
- window.onerror=function(msg,url,line){console.log("ERROR: \""+msg+"\" at \""+"\", line "+line);}
- window.addEventListener("touchstart",function(e){if(e.touches.length===3){console.show();e=null}});
- return window.console;
-}
 
 export async function npm(modules)
 {//let npm=await import(process.execPath.replace("bin/node","lib/node_modules/")+"npm/lib/npm.js");
@@ -126,14 +100,14 @@ export async function rollup(modules)
 ].filter(Boolean).join("/"));
  let [rollup,...plugins]=await Promise.all(tools.map(resolve));
  plugins=plugins.map(plugin=>plugin.default({format:"module"}));
- await Promise.all(Object.entries(modules).map(async function([file,input])
+ modules=await Promise.all(Object.entries(modules).map(async function([file,input])
 {let present=await import("./Blik_2020_persistence.js").then(({details})=>details(file));
- if(present)return delete modules[file];
+ if(present)return undefined;
  await npm(Object.keys(note(input)));
- modules[file]=Object.entries(input).map(([module,input])=>
- input.map(input=>process.execPath.replace("bin/node","lib/node_modules/")+module+"/"+input)).flat();
+ return [file,Object.entries(input).map(([module,input])=>
+ input.map(input=>process.execPath.replace("bin/node","lib/node_modules/")+module+"/"+input)).flat()];
 }));
- await Promise.all(Object.entries(modules).map(async([file,input])=>
+ await Promise.all(modules.filter(Boolean).map(async([file,input])=>
  modules[file]=await rollup.rollup({input,plugins}).then(roll=>
  roll.write({file,format:"module",inlineDynamicImports:true}))));
  return modules;
@@ -159,11 +133,12 @@ export async function respond(request,response={})
 ?route.call(route.call(this,request.path,request),[request.method])
 :import("./Blik_2020_persistence.js").then(({default:file})=>
  file[request.method](request,"binary"));
- body=await body.catch(note)||{status:404,body:Error("no such file or function").toString(),type:"txt"};
+ body=(body instanceof Promise?await body.catch(note):body)||{status:404,body:Error("no such file or function").toString(),type:"txt"};
+ note(body,typeof body,!!body,body?true:false)
  // PREPARE RESPONSE
  let type=body instanceof Error?"txt"
 :body instanceof Buffer?(request.url.match(/\.[^\.]*$/,"")||[".txt"])[0].slice(1)
-:typeof body=="object"?body.outerHTML?body.nodeName.toLowerCase():"json":"txt";
+:typeof body=="object"?body?.outerHTML?body.nodeName.toLowerCase():"json":"txt";
  let data=
  {status:body instanceof Error?500:200
  ,body:body instanceof Error?body.toString():body.outerHTML||body
@@ -193,18 +168,19 @@ export async function respond(request,response={})
 };
 
 export var {window,fetch}=globalThis.window?globalThis
-:{window:url=>resolve("jsdom/lib/api.js").then(module=>({window}=new module.default.JSDOM("",{url})))
+:{window:url=>resolve("jsdom/lib/api.js").then(({default:{JSDOM}})=>({window}=new JSDOM("",{url})))
  ,fetch:source=>
 {if(typeof source=="string")
  throw Error("no local server source provided for fetch response.");
  fetch=(url,request)=>respond.call(source
-,{url,method:"get",...request,response:{}
+,{url,method:"get",...request
+ ,response:{}
  ,respond:function(header){Object.assign(this.response,{header});}
  ,end:function(response){return Object.assign(this.response,response);}
  }).then(response=>(
  {...response
  ,headers:{get:key=>response.header[key]}
- ,arrayBuffer:async ()=>response.body.constructor?.name=="Buffer"?response.body:new Uint8Array(response.body)
+ ,arrayBuffer:async ()=>response.body.constructor?.name=="Buffer"?response.body:Buffer.from(response.body,"utf-8")
  ,text:async json=>typeof response.body=="object"
 ?response.body.constructor.name=="Buffer"?response.body
 :json?response.body:JSON.stringify(response.body)
@@ -235,16 +211,21 @@ export async function resolve(source,request)
  return source;
  if(source.startsWith("{"))
  return JSON.parse(source);
+ if(Array.isArray(source))
+ return Promise.all(source.map(resolve)).then(resources=>resources.map(resource=>resource.default||resource).flat());
  //if(format==="drive"){/*src=await fetch(*/medium.src="https://drive.google.com/uc?export=download&id="+url/*"https://www.googleapis.com/drive/v3/files/"+url+"?alt=media&key="+keys.googleapi)*/;/*console.log("fetched media source:",src);medium.src=src;/*URL.createObjectURL(new Blob([src],{type:"video/mp4"}))*/}else{medium.setAttribute("src",url)};medium.setAttribute("type",type+"/"+(format==="drive"?"mp4":format));medium.setAttribute("autoplay","true");medium.setAttribute("style","overflow-y:scroll;border:none;border-radius:"+(height/8)+"px")
- let [,group]=source.match(/\.((js)|(json))$/)||[];
- let {js,json}={[group]:true};
- if(!globalThis.window&&(js||json))
- return import("./"+source).catch(fail=>import(absolve(source))).catch(note);
- if(js)
- return await import("./"+source).then(module=>module.default);
+ let [,module]=source.match(/\.((js)|(json))$/)||[];
+ let {js,json}={[module]:true};
+ if(js||json)
+{module=await import("./"+source).catch(fail=>!globalThis.window
+?import(absolve(source)).catch(fail=>fail)
+:fail).then(module=>module);
+ if(!(module instanceof Error))
+ return module;
+};
  let response=await fetch(source,{method:"get",mode:"no-cors",...request});
  if(response.status==404&&!source.startsWith("http"))
- response=await fetch("get?source="+source);
+ response=await fetch(source);
  //.then(response=>response.json()).then(list=>note(list)&&list.length?fetch(list[0].name):"missing source");
  let format=response.headers.get('Content-Type');
  return response=="missing source"
@@ -253,7 +234,7 @@ export async function resolve(source,request)
 ?response.json().then(json=>({default:json.type=="Buffer"?JSON.parse(new TextDecoder("utf-8").decode(new Uint8Array(json.data))):typeof json=="string"?JSON.parse(json):json}))
 :response.type=="opaque"||format.startsWith("text")
 ?response.text().then(text=>text.constructor.name=="Buffer"?new TextDecoder("utf-8").decode(new Uint8Array(text.data||text)):text).then(text=>
- /xml$/.test(format)?import("./Blik_2020_document.js").then(({demarkup})=>demarkup(new window.DOMParser().parseFromString(text,format))):text)
+ /xml$/.test(format)?import("./Blik_2020_fragment.js").then(({demarkup})=>demarkup(new window.DOMParser().parseFromString(text,format))):text)
 //format.endsWith("text/html")?(new window.DOMParser()).parseFromString(text,"text/html"):text)
 :format.startsWith("image")
 ?format=="image/svg+xml"
@@ -271,18 +252,57 @@ export async function resolve(source,request)
 :new TextDecoder("utf-8").decode(new Uint8Array(file)));
 }
 
-export var dig=(path,json)=>[json,...path.split("/")].reduce((json,key)=>json[key]||json);
+ export var dig=(path,json)=>[json,...path.split("/")].reduce((json,key)=>json[key]||json);
 
-export function path(name){return (window.location.pathname+(name||"")).replace(/^\/*|\/*$/g,"");}
+ export function path(name){return (window.location.pathname+(name||"")).replace(/^\/*|\/*$/g,"");}
 
-export function retreat(){return window.location=window.location.pathname.split("/").filter(Boolean).slice(0,-1).join("/")+"/";}
+ export function retreat(){return window.location=window.location.pathname.split("/").filter(Boolean).slice(0,-1).join("/")+"/";}
 
-export function compose(...operations)
-{return operations.reduce((composition,operation)=>(...input)=>
- (composition=composition(...input)) instanceof Promise
-?composition.then(operation)
-:operation(composition));
+ export var sum=range=>range?.reduce((sum,value)=>sum+value)
+
+ export var compose=(...operations)=>
+ (...input)=>
+ operations.reduce((composition,operand)=>
+ operand instanceof Function
+?composition.some(component=>component instanceof Promise)
+?[Promise.all(composition).then(composition=>operand(...composition))]
+:[operand(...composition)]
+:[...composition,operand]
+,input)[0];
+
+export function merge(target={},source={},overwrite=1)
+{return Object.keys(source).reduce(function(target,key)
+{let previous=target.hasOwnProperty?target.hasOwnProperty(key):target[key];
+ let value=previous
+?typeof target[key]=="object"
+?Array.isArray(target[key])?target[key].concat(source[key]):merge(target[key],source[key]||{},overwrite)
+:substitute(target[key],source[key],overwrite)
+:source[key];
+ // recursive shallow-copy - reduce counterparts on an empty target to be pure. 
+ return Object.assign(target,{[key]:value});
+},target);
 };
+
+ export var substitute=
+ (source,target,index)=>
+ index instanceof Function
+?index(source,target)
+:[source,target][Number(!!index)];
+
+export function deepassign(source,key,assign)
+{if(typeof source!="string")
+ Object.entries(source).forEach(([item,value])=>
+{source[item]=item==key
+?{...value,...assign}
+:typeof value=="object"
+?Array.isArray(value)
+?value.map(value=>deepassign(value,key,assign))
+:deepassign(value,key,assign)
+:value;
+ if(item==key)console.log(item,value.fill)
+})
+ return source;
+}
 
 export var digest=hash=>value=>
 import("crypto").then(({createHash,createHmac})=>

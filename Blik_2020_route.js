@@ -37,18 +37,15 @@ export async function open(source,parameters,protocol="http")
  //let mongo=Object.entries({dbpath:"mongo",logpath:"mongo.log"}).map(([key,value])=>
  //["--"+key,process.execPath+value]).flat();
  //await import("child_process").then(({spawn})=>spawn("mongod",[...mongo,"--fork"]));
- setInterval(done=>list("",".log",logs=>logs.forEach(log=>shrink(log,"replace"))),1000*60*60*24);
- note("\x1b[33marchiving logs daily...\x1b[0m");
+ //setInterval(done=>list("",".log",logs=>logs.forEach(log=>shrink(log,"replace"))),1000*60*60*24);
+ //note("\x1b[33marchiving logs daily...\x1b[0m");
  //https://github.com/nodejs/node/issues/35158
  if(!process.argv[1])process.argv[1]=import.meta.url;
  return import("os").then(os=>os.cpus().map((cpu,index,cpus)=>setTimeout(time=>
- note("\x1b[31m"+cluster.fork().id+"/"+cpus.length+" "+cpu.model+(!cpus[index+1]?"":"\nnext fork in 5 seconds...")+"\x1b[0m"),index*5000)));
+ note("\x1b[31m"+cluster.fork().id+"/"+cpus.length+" "+cpu.model+(!cpus[index+1]?"":"\nnext fork in a second...")+"\x1b[0m"),index*1000)));
  //import("repl").then(repl=>repl.start({"prompt":"\x1b[31mrepl interface active...\n","eval":input=>respond({method:"get",url:"/"+input},{end:body=>({...this.header,body}),setHeader:header=>this.header={header},writeHead:function(){}}).then(note)}));
 };
- let tests=source.replace(".js","_tests.js");
  source=await import(source);
- if(cluster.isMaster&&tests)
- await import("./Blik_2020_integrity.js").then(({check})=>check(source,tests));
  let host=[protocol,"//localhost",keys.port].join(":");
  window(host);
  fetch(source.default);
@@ -62,7 +59,7 @@ export async function open(source,parameters,protocol="http")
  respond.call(source.default,request,response))
 ]);
  await Promise.all(
- Object.entries(keys.certification||{}).slice(1).map(async([name,certification])=>
+ Object.entries(keys.certification||{}).slice(0,1).map(async([name,certification])=>
  protocol.addContext(name,await certify(certification))));
  protocol.listen(keys.port,function listen(port){note(this._connectionKey||port,"open")});
  import("./Blik_2020_room.js").then(room=>room.open(protocol,room.default));

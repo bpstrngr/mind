@@ -1,42 +1,42 @@
 #!/bin/bash
-node --inspect=9291 --experimental-json-modules ./Blik_2020_route.js nodemon ./Blik_2020_source.js ./Blik_2020_parameters.json https;
-exit 0
+node --inspect=9291 --experimental-json-modules ./Blik_2020_route.js open ./Blik_2020_source.js ./Blik_2020_parameters.json https;
 #node --inspect=9291 --experimental-json-modules -e 'import("./Blik_2020_route.js").then(route=>route.nodemon("./Blik_2020_source.js","./Blik_2020_parameters.json","https"))';
+exit 0
 
-Execute this readme to seed a source. 
-Check to specify a it along with a parameter module, 
-containing port, certification, authenticity, etc 
-credentials for a protocol you also specify. 
+Execute route.js or this readme to route requests. 
 
-Acquisition (global) and bundling (local) of external dependencies, 
-as well as testing are all explicit in the opening function.
-No cryptic build steps (babel, webpack) or
-syntactical skeuomorphisms (typescript, jsx etc.) used.
-
-These dependencies are defined in a separate, complacent 
-"package.json" along with npm versioning. 
-That's as suckless@http://suckless.org/philosophy/ as I could get. 
+Parameters it expects or will prompt for: 
+a source and a parameter module, 
+the latter containing port and certificate entries 
+for the protocol you specify. 
+All modules will be installed, bundled, uninstalled and tested on import 
+if respective entries in complatent package.json, or a _tests.js module exists. 
+When shackles of npm get shaken in favor of pure version control, 
+package.json can turn suckless@http://suckless.org/philosophy sources.json with proper urls. 
 
 legend#strong : apple#scan{height:1em;fill:#b71c1c} ready dragon#scan{height:1em;fill:green} coming snail#scan{height:1em;fill:#795548} proposal worm#scan{height:1em} bug
 
-syntax_rules#strong :
-#1#strong one line=one statement.
-#2#strong break before block specifiers
-, ternary and array operators ({}[,]?:).
-#3#strong indent blocks and object literals with one space.
-order#strong : direct expressions, imports, default export, exports, internal functions, internal variables.
+syntax_rules#strong 
+#1#strong one line=one statement. 
+#2#strong break before block specifiers, 
+ternary and array operators ({}[,]?:). 
+#3#strong indent blocks and object literals with one space. 
+order#strong : direct expressions, imports, default export, exports, internal functions, internal variables. 
 
-seed.js#strong : trace path and method
-to route[path].call(route,request) on source.
-empty trails ("/") call "interface",
-empty tracks fall back to source
-(preserving route on bound this).
+platform.js#strong 
+route this path ...input: consume path array on keys of values or their products in source object. curry function values with further arguments, bound to track. 
+respond request response: parse request path and query, route path and method on bound source matching empty trails ("/") with "interface" and falling back to stem on mistrack, derive http headers. 
+fetch, window: browser-based or host-defined request and interface instance. 
+
+route.js#strong 
+open: define host and source for window and fetch on platform, certify port and attach with platform.respond to listen. 
 residual paths proceed on return value.
 
 source#scan{height:1em;fill:white}
-source.js#strong : exposed persistence apis (file/data), html interface.
-query string is assigned to source form,
-which is then performed (pre-submitted).
+exposed persistence apis (file/data), html interface. 
+Latter provides composer form and composition frame. 
+query string is assigned to composer form fields, 
+frame is populated with composition (see actions.submit.get). 
 hmac-key-authenticated requests get badges.
 get#strong : this object and filesystem. 
 put#strong : add to filesystem. 
@@ -51,8 +51,31 @@ order#strong : scheduled external request.
 mongo.get#strong : mongo cluster. 
 matrix.get#strong : matrix cluster. 
 google#strong : google api. 
-modules#strong : module import hierarchy from babel-parser's abstract syntax tree.
+modules#strong : module import hierarchy by babel-parser's abstract syntax tree.
 react#strong : reproduction of peer with react. 
 
-actions#strong : trace node name, id and type route(event)=>actions[this.nodeName](event)
+actions#strong 
+dispatch: trace node name, id and type route(event)=>actions[this.nodeName](event)
+submit: fetch form source field value, insert transformed fragment, join respective socket and 
+insert: 
 
+document.js
+scan: reduce entries to jsdom tree. #text key for textnode, string value for attributes. 
+markup: reduce entries to tag-strings. 
+demarkup: 
+
+fragment.js#strong 
+transform fields: resolve source, profile resource to apply fields and composer if bound, return representation. 
+network: 
+sprawl resource to nodes, extract records (matrix or embedded adjacency list), infer them (matrix of paths/subdomain indexes), 
+spread nodes, extract links, update both from encumbent, track motion/change in simulation. 
+Changes to simulation.force("link").links() and simulation.nodes() (also coordinated by forceManyBody and forceCollide) 
+will be reflected in simulation.network and simulation.cluster selections respectively (selection.data().join()). 
+sprawl resource: reduce d3 node tree, tracking referential fields and matrices to infer once ready. 
+spread nodes: move nodes as specified (none if force)
+infer nodes: get links.
+spawn links: join links and their nodes to selection, gradually if specified. 
+wire: 
+node: 
+conduct: 
+: 

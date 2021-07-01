@@ -12,14 +12,14 @@
 !Blik_2020_store.js
 !Blik_2020_persistence.js
 !Blik_2020_platform.js
-!Blik_2020_document.js
-!Blik_2020_transform.js
+!Blik_2020_fragment.js
 !Blik_2020_dashboard.js
 !Blik_2021_economy.js
 !Blik_2020_network.js
 !Blik_2020_script.js
 !Blik_2020_chart.js
 !Blik_2020_map.js
+!Blik_2021_layout.js
 !readme
 !.gitignore
 

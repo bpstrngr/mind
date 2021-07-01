@@ -29,35 +29,33 @@ var exclude=(name,exclusions)=>
 
 export default
 {get:async function(request,mode)
-{mode=request.query&&request.query.mode||mode;
- if(request.length)request={url:request};
+{mode=request.query?.mode||mode;
+ if(typeof request!="object")
+ request={url:request};
  if(request.url.slice(0,4)=="http")
  return forward(request.url,request);
  request=(Array.isArray(request.path)?request.path:request.url.split("/")).filter(Boolean).filter(step=>step!=".");
- let functions=!request.length?await module(this):null;
  let files=await new Promise(seek=>
  seek(path.resolve("."))).then(async function seek(url)
 {let next=request.shift()||"";
  let step=path.resolve(url,next);
  let match=await details(step).then(entry=>entry&&entry.isFile());
  if(match)
- return exclude(step,exclusions)?Error("restricted"):await read(step,mode)
+ return exclude(step,exclusions)?Error("restricted"):await read(step,mode);
  let entries=await fs.readdir(url,{withFileTypes:true});
  entries=entries.filter(({name})=>!exclude(name,exclusions)&&
  name.match(new RegExp(next)));
  entries=await Promise.all(entries.map(entry=>
  entry.isDirectory()
 ?seek(path.resolve(url,entry.name)).then(entries=>
- typeof entries=="string"
-?entries
-:{[entry.name]:entries})
-:{[entry.name]:"file"}));
+ typeof entry=="string"?entries:[entry.name,entries||[]])
+:[entry.name,"file"]));
  if(!entries.length)
  return undefined;
- return entries.reduce((entries,entry)=>
- [entries,entry].find(piece=>typeof piece=="string")||
- Object.assign(entries,entry));
+ let file=entries.find(entry=>typeof entry=="string")
+ return file||Object.fromEntries(entries);
 });
+ let functions=!request.length?await module(this||{}):null;
  return !files?functions:Object.assign(files,functions);
 }
 ,put:async function(request)
@@ -104,19 +102,19 @@ function forward(file,request)
  let protocol=file.substring(0,file.indexOf(":"));
  return new Promise(resolve=>
  import(protocol).then(protocol=>
-{let body=request.body||"";
- request=protocol.request({method:"GET",...request,...url.parse(file)},response=>
+{request=protocol.request({method:"GET",...request,...url.parse(file)},response=>
 {let body="";
  response.on("data",piece=>body+=piece);
  response.on("end",end=>resolve(
  {status:response.statusCode
+ ,body
  ,type:response.headers["content-type"]
  ,headers:{get:header=>response.headers[header.toLowerCase()]}
  ,json:()=>Promise.resolve(JSON.parse(body))
  ,text:()=>Promise.resolve(body||response.statusMessage)
  }));
 });
- request.write(String(body));
+ request.write(String(request.body||""));
  request.end();
 }));
 }
@@ -138,12 +136,11 @@ export function decompress(file,binary,output)
 
 export async function details(file){return await fs.stat(file).catch(fail=>undefined)}
 
-export function module(file)
-{return import(file).then(function scan(module)
-{return Object.fromEntries(Object.entries(module.default||module).map(([key,value])=>
- [key,value&&typeof value=="object"?scan(value):value?value.toString():value]))
-}).catch(fail=>({}))
-}
+export function module(source)
+{return JSON.parse(JSON.stringify(source));
+ return Object.fromEntries(Object.entries(source.default||source).map(([key,value])=>
+ [key,value&&typeof value=="object"?module(value):value?value.toString():value]))
+};
 
 export async function modules(module)
 {module=module&&typeof module=="string"?module:process.argv[1];

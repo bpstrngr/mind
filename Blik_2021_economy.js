@@ -5,7 +5,7 @@ else note("import without arguments");
 
 import clock from "./Blik_2020_time.js";
 import {note,resolve,compose,digest} from "./Blik_2020_platform.js";
-import {scan,markup} from "./Blik_2020_document.js";
+import {markup} from "./Blik_2020_fragment.js";
 
 function disclosure(date=new Date())
 {let deadline={Month:1,Date:26}

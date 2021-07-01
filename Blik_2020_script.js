@@ -1,5 +1,5 @@
 export default async function script(source,{name})
-{if(!window.subject.room.content)
+{if(!window.room.content)
 {let  
 {EditorView,EditorState,basicSetup,historyKeymap
 ,lineNumbers,keymap,standardKeymap,closeBrackets,bracketMatching

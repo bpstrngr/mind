@@ -1,4 +1,4 @@
-import {scan} from "./Blik_2020_document.js";
+import {document} from "./Blik_2020_fragment.js";
 import {note,fetch,compose} from "./Blik_2020_platform.js";
 
 export async function open(port,room)
@@ -71,7 +71,7 @@ export default
 
 export var stream=
  {message({message,author:{name,image}})
-{message=scan({li:{img:{src:image||"vector/anonymous",height:"12px"},div:{"#text":name||"anonymous"},span:{"#text":message}}})
+{message=document({li:{img:{src:image||"vector/anonymous",height:"12px"},div:{"#text":name||"anonymous"},span:{"#text":message}}}).next().value
  if(name=="system")
  setTimeout(done=>(message.style="opacity:0;transition:all 1s;")&&
  setTimeout(done=>message.remove()
@@ -85,7 +85,7 @@ export var stream=
 },signal(signal)
 {let list=this.message.parentNode.querySelector("ul");
  let node=list.querySelector("span#signal");
- list[node?"replaceChild":"appendChild"](scan({span:{id:"signal",signal:window.document.createRange().createContextualFragment(signal)}}),node);
+ list[node?"replaceChild":"appendChild"](document({span:{id:"signal",signal:window.document.createRange().createContextualFragment(signal)}}).next().value,node);
  node=list.querySelector("span#signal");
  signal=node.textContent;
  setTimeout(timeout=>node.textContent==signal&&node.remove(),3000);
